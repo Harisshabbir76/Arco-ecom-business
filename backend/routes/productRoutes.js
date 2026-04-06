@@ -12,16 +12,16 @@ function slugify(text) {
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '-')     // Replace spaces with -
-    .replace(/[^\w-]+/g, '')     // Remove all non-word chars
-    .replace(/--+/g, '-');      // Replace multiple - with single -
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-');
 }
 
 // POST /dashboard/add-product - Add a new product
-router.post('/dashboard/add-product', upload.fields([{name: 'images', maxCount: 10}, {name: 'designs', maxCount: 10}]), async (req, res) => {
+router.post('/dashboard/add-product', upload.fields([{ name: 'images', maxCount: 10 }, { name: 'designs', maxCount: 10 }]), async (req, res) => {
   let { name, description, originalPrice, discountedPrice, category, stock, sizes, colors, featured } = req.body;
   featured = featured === 'true';
-const imageFiles = req.files?.images || [];
+  const imageFiles = req.files?.images || [];
   const designFiles = req.files?.designs || [];
   const imagePaths = imageFiles.map(file => file.path);
   const designPaths = designFiles.map(file => file.path);
@@ -98,7 +98,7 @@ router.get('/new-arrival', async (req, res) => {
 
     res.json(products);
   } catch (err) {
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: 'Server Error' });
   }
 });
 
@@ -170,11 +170,10 @@ router.put('/update/:id', async (req, res) => {
   try {
     const updateData = { ...req.body };
 
-    // Always lowercase the category to keep it consistent with add route
     if (updateData.category) {
       updateData.category = updateData.category.toLowerCase().trim();
     }
-    // If name is being updated, regenerate the slug if it's missing or if the name changed
+
     if (updateData.name) {
       const existingProduct = await Product.findById(req.params.id);
       if (existingProduct && (existingProduct.name !== updateData.name || !existingProduct.slug)) {
@@ -231,7 +230,11 @@ router.get('/api/featured-products', async (req, res) => {
   try {
     const products = await Product.find({ featured: true }).sort({ createdAt: -1 }).limit(8);
     res.json(products);
-  } catch (err) {\n    console.error('Featured products error details:', err);\n    console.error('Stack:', err.stack);\n    res.status(500).json({ message: 'Error fetching featured products' });\n  }\n});
+  } catch (err) {
+    console.error('Featured products error details:', err);
+    console.error('Stack:', err.stack);
+    res.status(500).json({ message: 'Error fetching featured products' });
+  }
+});
 
 module.exports = router;
-
