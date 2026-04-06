@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Spinner, Accordion } from 'react-bootstrap';
 import axios from 'axios';
-import { FaQuestionCircle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaQuestionCircle } from 'react-icons/fa';
 
-// Navbar color palette
 const logoColors = {
   primary: '#fe7e8b',
   secondary: '#e65c70',
@@ -23,7 +22,12 @@ export default function FAQs() {
       try {
         setLoading(true);
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/faqs`);
-        console.log('FAQs API response:', { type: typeof res.data, isArray: Array.isArray(res.data), length: res.data?.length, data: res.data });
+        console.log('FAQs API response:', {
+          type: typeof res.data,
+          isArray: Array.isArray(res.data),
+          length: res.data?.length,
+          data: res.data,
+        });
         const data = Array.isArray(res.data) ? res.data : [];
         setFaqs(data);
       } catch (err) {
@@ -47,22 +51,21 @@ export default function FAQs() {
   }
 
   if (error || faqs.length === 0) {
-    return null; // Don't show section if no FAQs
+    return null;
   }
 
   return (
-    <div style={{
-      background: logoColors.background,
-      padding: '3rem 0',
-    }}>
+    <div style={{ background: logoColors.background, padding: '3rem 0' }}>
       <Container>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h2 style={{
-            fontSize: '2rem',
-            color: '#2D3748',
-            marginBottom: '0.5rem',
-            fontWeight: '600'
-          }}>
+          <h2
+            style={{
+              fontSize: '2rem',
+              color: '#2D3748',
+              marginBottom: '0.5rem',
+              fontWeight: '600',
+            }}
+          >
             Frequently <span style={{ color: logoColors.primary }}>Asked Questions</span>
           </h2>
           <p style={{ color: '#718096', fontSize: '1rem' }}>
@@ -82,28 +85,19 @@ export default function FAQs() {
                     border: 'none',
                     borderRadius: '12px',
                     overflow: 'hidden',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                   }}
                 >
-                  <Accordion.Header
-                    style={{
-                      background: 'white',
-                      borderBottom: 'none'
-                    }}
-                  >
+                  <Accordion.Header style={{ background: 'white', borderBottom: 'none' }}>
                     <div className="d-flex align-items-center">
                       <FaQuestionCircle
                         style={{
                           color: logoColors.primary,
                           marginRight: '0.75rem',
-                          fontSize: '1rem'
+                          fontSize: '1rem',
                         }}
                       />
-                      <span style={{
-                        color: '#2D3748',
-                        fontWeight: '500',
-                        fontSize: '1rem'
-                      }}>
+                      <span style={{ color: '#2D3748', fontWeight: '500', fontSize: '1rem' }}>
                         {faq.question}
                       </span>
                     </div>
@@ -114,7 +108,7 @@ export default function FAQs() {
                       borderTop: '1px solid #f0f0f0',
                       color: '#718096',
                       fontSize: '0.95rem',
-                      lineHeight: '1.6'
+                      lineHeight: '1.6',
                     }}
                   >
                     {faq.answer}
@@ -128,4 +122,3 @@ export default function FAQs() {
     </div>
   );
 }
-
