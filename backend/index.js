@@ -45,8 +45,7 @@ app.use(express.json());
 
 const corsOptions = {
   origin: ['http://localhost:3000',  
-            'https://zedify-web.vercel.app',
-            'https://www.zedify.store'
+            'https://arco-ecom-business.vercel.app'
     
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
