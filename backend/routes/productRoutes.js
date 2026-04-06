@@ -231,10 +231,7 @@ router.get('/api/featured-products', async (req, res) => {
   try {
     const products = await Product.find({ featured: true }).sort({ createdAt: -1 }).limit(8);
     res.json(products);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching featured products' });
-  }
-});
+  } catch (err) {\n    console.error('Featured products error details:', err);\n    console.error('Stack:', err.stack);\n    res.status(500).json({ message: 'Error fetching featured products' });\n  }\n});
 
 module.exports = router;
 

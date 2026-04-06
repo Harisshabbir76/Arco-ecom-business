@@ -5,8 +5,7 @@ const FAQ = require('../Models/FAQ');
 // GET /api/faqs - Get all FAQs (public - only active ones)
 router.get('/api/faqs', async (req, res) => {
   try {
-    const faqs = await FAQ.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
-    res.json(faqs);
+    const faqs = await FAQ.find({ isActive: true }).sort({ order: 1, createdAt: -1 });\n    console.log('FAQ query result:', faqs.length, 'FAQs found');\n    res.json(faqs);
   } catch (err) {
     console.error('Error fetching FAQs:', err);
     res.status(500).json({ message: 'Error fetching FAQs' });
