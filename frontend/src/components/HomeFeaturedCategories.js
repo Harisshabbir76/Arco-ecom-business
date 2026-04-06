@@ -42,7 +42,8 @@ export default function HomeFeaturedCategories() {
       try {
         setLoading(true);
         const catRes  = await axios.get(`${process.env.REACT_APP_API_URL}/api/categories`);
-        const catsToShow = catRes.data.filter(cat => cat.showOnHome);
+        const catData = Array.isArray(catRes.data) ? catRes.data : [];
+        const catsToShow = catData.filter(cat => cat.showOnHome);
         setFeaturedCategories(catsToShow);
 
         const prodRes   = await axios.get(`${process.env.REACT_APP_API_URL}/catalog`);

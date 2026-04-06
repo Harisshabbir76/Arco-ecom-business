@@ -32,7 +32,7 @@ const HeroSlider = () => {
     const fetchSlides = async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/hero-slides`);
-        setSlides(res.data || []);
+        setSlides(Array.isArray(res.data) ? res.data : []);
       } catch {
         setSlides([
           {
