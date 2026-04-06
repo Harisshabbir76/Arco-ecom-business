@@ -22,8 +22,14 @@ export default function FAQs() {
     const fetchFAQs = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/faqs`);\n        console.log('FAQs API response:', { type: typeof res.data, isArray: Array.isArray(res.data), length: res.data?.length, data: res.data });\n        const data = Array.isArray(res.data) ? res.data : [];\n        setFaqs(data);
-      } catch (err) {\n        console.error('FAQs API error:', err.response?.data || err.message);\n        setError('Failed to load FAQs');\n        setFaqs([]);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/faqs`);
+        console.log('FAQs API response:', { type: typeof res.data, isArray: Array.isArray(res.data), length: res.data?.length, data: res.data });
+        const data = Array.isArray(res.data) ? res.data : [];
+        setFaqs(data);
+      } catch (err) {
+        console.error('FAQs API error:', err.response?.data || err.message);
+        setError('Failed to load FAQs');
+        setFaqs([]);
       } finally {
         setLoading(false);
       }
