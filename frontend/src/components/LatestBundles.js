@@ -43,7 +43,7 @@ function BundleCard({ bundle, getProductImage, handleBundleClick, handleAddBundl
                     gap: '2px',
                     backgroundColor: '#f8f9fa'
                 }}>
-                    {bundle.products?.slice(0, 4).map((product, idx) => (
+                    {(bundle.products || []).slice(0, 4).map((product, idx) => (
                         <div key={idx} style={{ flex: 1, overflow: 'hidden' }}>
                             <img
                                 src={getProductImage(product)}
@@ -89,7 +89,7 @@ function BundleCard({ bundle, getProductImage, handleBundleClick, handleAddBundl
                     borderRadius: '4px', fontSize: '0.65rem',
                     color: logoColors.primary, display: 'inline-block', marginBottom: '0.5rem'
                 }}>
-                    {bundle.products?.length || 0} Products
+                    {(bundle.products?.length || 0)} Products
                 </span>
 
                 <div className="mt-auto">
@@ -156,10 +156,13 @@ export default function LatestBundles() {
             try {
                 setLoading(true);
                 const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/bundles/latest`);
-                setBundles(res.data);
+                // Ensure we're setting an array
+                const bundlesData = Array.isArray(res.data) ? res.data : (res.data?.bundles || []);
+                setBundles(bundlesData);
             } catch (err) {
                 console.error('Error fetching bundles:', err);
                 setError('Failed to load bundles.');
+                setBundles([]); // Set empty array on error
             } finally {
                 setLoading(false);
             }
@@ -199,8 +202,8 @@ export default function LatestBundles() {
             price: bundle.bundlePrice,
             discountedPrice: bundle.bundlePrice,
             name: bundle.name,
-            bundleProducts: bundle.products,
-            image: bundle.image ? [bundle.image] : bundle.products[0]?.image || []
+            bundleProducts: bundle.products || [],
+            image: bundle.image ? [bundle.image] : (bundle.products?.[0]?.image || [])
         });
     };
 
@@ -216,8 +219,8 @@ export default function LatestBundles() {
                     price: bundle.bundlePrice,
                     discountedPrice: bundle.bundlePrice,
                     name: bundle.name,
-                    bundleProducts: bundle.products,
-                    image: bundle.image ? [bundle.image] : bundle.products[0]?.image || []
+                    bundleProducts: bundle.products || [],
+                    image: bundle.image ? [bundle.image] : (bundle.products?.[0]?.image || [])
                 }]
             }
         });
@@ -241,7 +244,7 @@ export default function LatestBundles() {
         </Container>
     );
 
-    if (bundles.length === 0) return null;
+    if (!bundles || bundles.length === 0) return null;
 
     const arrowBtnStyle = {
         position: 'absolute',

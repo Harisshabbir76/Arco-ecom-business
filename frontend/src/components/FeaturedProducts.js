@@ -37,13 +37,31 @@ export default function FeaturedProducts() {
     (async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/featured-products`);
-        console.log('FeaturedProducts API response:', { type: typeof res.data, isArray: Array.isArray(res.data), length: res.data?.length, data: res.data });
-        const data = Array.isArray(res.data) ? res.data : [];
-        setProducts(data);
+        console.log('FeaturedProducts API response:', { 
+          type: typeof res.data, 
+          isArray: Array.isArray(res.data), 
+          length: res.data?.length, 
+          data: res.data 
+        });
+        
+        // Handle the response properly - check if it's actually HTML
+        let data = res.data;
+        
+        // If response is a string that looks like HTML, it's an error
+        if (typeof data === 'string' && data.includes('<!doctype html>')) {
+          console.error('Received HTML instead of JSON - check API endpoint');
+          setError('Unable to load featured products. Please try again later.');
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Ensure we have an array
+        const productsArray = Array.isArray(data) ? data : (data?.products || []);
+        setProducts(productsArray);
       } catch (err) {
         console.error('FeaturedProducts API error:', err.response?.data || err.message);
-        setProducts([]); // Ensure array fallback
-
+        setProducts([]);
         setError('Failed to load featured products.');
       } finally {
         setLoading(false);
@@ -76,7 +94,8 @@ export default function FeaturedProducts() {
     </div>
   );
 
-if (!Array.isArray(products) || !products.length) return null;
+  // Safe check for products array
+  if (!products || !Array.isArray(products) || products.length === 0) return null;
 
   return (
     <>
@@ -428,6 +447,9 @@ if (!Array.isArray(products) || !products.length) return null;
           {/* ── Grid ── */}
           <div className="fp-grid">
             {products.map((product) => {
+              // Add safe check for product
+              if (!product) return null;
+              
               const discountPct = product.discountedPrice && product.discountedPrice < product.originalPrice
                 ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
                 : null;
@@ -437,7 +459,7 @@ if (!Array.isArray(products) || !products.length) return null;
 
               return (
                 <div
-                  key={product._id}
+                  key={product._id || Math.random()}
                   className="fp-card"
                   onClick={() => handleProductClick(product._id)}
                 >
@@ -446,7 +468,7 @@ if (!Array.isArray(products) || !products.length) return null;
                     <img
                       className="fp-img"
                       src={getProductImage(product)}
-                      alt={product.name}
+                      alt={product.name || 'Product'}
                       loading="lazy"
                       onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                     />
@@ -506,7 +528,7 @@ if (!Array.isArray(products) || !products.length) return null;
                       </span>
                     )}
 
-                    <p className="fp-name">{product.name}</p>
+                    <p className="fp-name">{product.name || 'Product'}</p>
 
                     {/* Pricing */}
                     <div className="fp-pricing">
