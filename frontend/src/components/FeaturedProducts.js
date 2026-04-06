@@ -37,8 +37,13 @@ export default function FeaturedProducts() {
     (async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/featured-products`);
-        setProducts(res.data || []);
-      } catch {
+        console.log('FeaturedProducts API response:', { type: typeof res.data, isArray: Array.isArray(res.data), length: res.data?.length, data: res.data });
+        const data = Array.isArray(res.data) ? res.data : [];
+        setProducts(data);
+      } catch (err) {
+        console.error('FeaturedProducts API error:', err.response?.data || err.message);
+        setProducts([]); // Ensure array fallback
+
         setError('Failed to load featured products.');
       } finally {
         setLoading(false);
@@ -71,7 +76,7 @@ export default function FeaturedProducts() {
     </div>
   );
 
-  if (!products.length) return null;
+if (!Array.isArray(products) || !products.length) return null;
 
   return (
     <>
