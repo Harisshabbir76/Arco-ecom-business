@@ -20,22 +20,24 @@ import {
   FiDollarSign,
   FiPercent,
   FiHash,
-  FiLink,
   FiImage,
   FiUpload,
   FiX,
-  FiStar
+  FiStar,
+  FiArrowLeft
 } from 'react-icons/fi';
 
-// Navbar color palette
-const logoColors = {
-  primary: '#fe7e8b',
-  secondary: '#e65c70',
-  light: '#ffd1d4',
-  dark: '#d64555',
-  background: '#fff5f6',
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)',
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)',
+const C = {
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#888888',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 export default function AddProduct() {
@@ -58,6 +60,7 @@ export default function AddProduct() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingDesign, setIsDraggingDesign] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -134,12 +137,10 @@ export default function AddProduct() {
 
     const data = new FormData();
 
-    // Add all fields except featured (to avoid duplication)
     Object.entries(formData).forEach(([key, value]) => {
       if (key !== 'featured') data.append(key, value);
     });
 
-    // Add featured once, explicitly as a string so backend parses correctly
     data.append('featured', formData.featured.toString());
 
     for (let i = 0; i < images.length; i++) {
@@ -237,16 +238,12 @@ export default function AddProduct() {
 
   if (isLoading) {
     return (
-      <Container
-        fluid
-        className="d-flex justify-content-center align-items-center"
-        style={{ minHeight: '100vh', background: logoColors.background }}
-      >
+      <div style={{ minHeight: '100vh', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="text-center">
-          <Spinner animation="border" style={{ color: logoColors.primary }} />
-          <p className="mt-3" style={{ color: '#4A5568' }}>Loading...</p>
+          <Spinner animation="border" style={{ color: C.red, width: '2.5rem', height: '2.5rem', borderWidth: '3px' }} />
+          <p className="mt-3" style={{ color: C.gray }}>Loading...</p>
         </div>
-      </Container>
+      </div>
     );
   }
 
@@ -255,606 +252,575 @@ export default function AddProduct() {
   }
 
   return (
-    <Container
-      fluid
-      style={{
-        background: logoColors.background,
-        minHeight: '100vh',
-        padding: '2rem 0'
-      }}
-    >
-      <Container>
-        <Card
-          className="border-0 shadow-lg mx-auto"
-          style={{
-            maxWidth: '900px',
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+        
+        .add-product-page {
+          min-height: 100vh;
+          background: ${C.white};
+          font-family: 'Barlow', sans-serif;
+        }
+
+        .form-control:focus, .form-select:focus {
+          border-color: ${C.red};
+          box-shadow: 0 0 0 0.2rem ${C.red}20;
+        }
+      `}</style>
+
+      <div className="add-product-page" style={{ padding: '2rem 0' }}>
+        <Container>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: C.red,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '1.5rem',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              fontWeight: 500
+            }}
+            onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+            onMouseLeave={(e) => e.target.style.opacity = '1'}
+          >
+            <FiArrowLeft size={16} /> Back to Dashboard
+          </button>
+
+          <Card className="border-0 shadow-sm mx-auto" style={{
+            maxWidth: '1000px',
             borderRadius: '16px',
-            overflow: 'hidden'
-          }}
-        >
-          {/* Card Header with Pink Gradient */}
-          <div style={{
-            background: logoColors.gradient,
-            padding: '2rem 1.5rem',
-            textAlign: 'center'
+            overflow: 'hidden',
+            border: `1px solid ${C.border}`
           }}>
-            <h1 className="text-white mb-0" style={{ fontWeight: '600', fontSize: '2rem' }}>
-              <FiPackage className="me-2" style={{ verticalAlign: 'middle' }} />
-              Add New Product
-            </h1>
-            <p className="text-white-50 mt-2" style={{ opacity: 0.9 }}>
-              Fill in the details to add a new product to your catalog
-            </p>
-          </div>
+            {/* Card Header with Red Gradient */}
+            <div style={{
+              background: C.gradient,
+              padding: '2rem 1.5rem',
+              textAlign: 'center'
+            }}>
+              <h1 className="text-white mb-0" style={{ fontFamily: 'Barlow, sans-serif', fontWeight: '700', fontSize: '1.75rem' }}>
+                <FiPackage className="me-2" style={{ verticalAlign: 'middle' }} />
+                Add New Product
+              </h1>
+              <p className="mt-2" style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'Barlow, sans-serif' }}>
+                Fill in the details to add a new product to your catalog
+              </p>
+            </div>
 
-          <Card.Body style={{ padding: '2rem' }}>
-            {error && (
-              <Alert
-                variant="danger"
-                className="text-center"
-                style={{
-                  background: '#ffd1d4',
-                  border: `1px solid ${logoColors.primary}`,
-                  color: logoColors.dark,
+            <Card.Body style={{ padding: '2rem', background: C.white }}>
+              {error && (
+                <Alert variant="danger" className="text-center" style={{
+                  background: C.redLight,
+                  border: `1px solid ${C.red}`,
+                  color: C.red,
                   borderRadius: '8px'
-                }}
-              >
-                {error}
-              </Alert>
-            )}
+                }}>
+                  {error}
+                </Alert>
+              )}
 
-            {success && (
-              <Alert
-                variant="success"
-                className="text-center"
-                style={{
-                  background: logoColors.softGradient,
-                  border: `1px solid ${logoColors.light}`,
-                  color: logoColors.dark,
+              {success && (
+                <Alert variant="success" className="text-center" style={{
+                  background: '#d4edda',
+                  border: `1px solid #28a745`,
+                  color: '#155724',
                   borderRadius: '8px'
-                }}
-              >
-                {success}
-              </Alert>
-            )}
+                }}>
+                  {success}
+                </Alert>
+              )}
 
-            <Form onSubmit={handleProductSubmit}>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                      <FiPackage className="me-2" style={{ color: logoColors.primary }} />
-                      Product Name
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      style={{
-                        borderColor: logoColors.light,
-                        padding: '0.75rem',
-                        borderRadius: '8px',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = logoColors.primary;
-                        e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = logoColors.light;
-                        e.target.style.boxShadow = 'none';
-                      }}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                      <FiTag className="me-2" style={{ color: logoColors.primary }} />
-                      Category
-                    </Form.Label>
-                    <Form.Select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      required
-                      style={{
-                        borderColor: logoColors.light,
-                        padding: '0.75rem',
-                        borderRadius: '8px',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = logoColors.primary;
-                        e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = logoColors.light;
-                        e.target.style.boxShadow = 'none';
-                      }}
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map(cat => (
-                        <option key={cat._id} value={cat.name}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <Form.Group className="mb-3">
-                <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                  <FiFileText className="me-2" style={{ color: logoColors.primary }} />
-                  Description
-                </Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={4}
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  style={{
-                    borderColor: logoColors.light,
-                    padding: '0.75rem',
-                    borderRadius: '8px',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = logoColors.primary;
-                    e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = logoColors.light;
-                    e.target.style.boxShadow = 'none';
-                  }}
-                />
-              </Form.Group>
-
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                      <FiDollarSign className="me-2" style={{ color: logoColors.primary }} />
-                      Original Price
-                    </Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text style={{
-                        background: 'white',
-                        borderColor: logoColors.light,
-                        color: logoColors.primary
-                      }}>
-                        Rs.
-                      </InputGroup.Text>
-                      <Form.Control
-                        type="number"
-                        name="originalPrice"
-                        value={formData.originalPrice}
-                        onChange={handleChange}
-                        style={{
-                          borderColor: logoColors.light,
-                          padding: '0.75rem',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = logoColors.primary;
-                          e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = logoColors.light;
-                          e.target.style.boxShadow = 'none';
-                        }}
-                      />
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                      <FiPercent className="me-2" style={{ color: logoColors.primary }} />
-                      Discounted Price
-                    </Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text style={{
-                        background: 'white',
-                        borderColor: logoColors.light,
-                        color: logoColors.primary
-                      }}>
-                        Rs.
-                      </InputGroup.Text>
-                      <Form.Control
-                        type="number"
-                        name="discountedPrice"
-                        value={formData.discountedPrice}
-                        onChange={handleChange}
-                        required
-                        style={{
-                          borderColor: logoColors.light,
-                          padding: '0.75rem',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = logoColors.primary;
-                          e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = logoColors.light;
-                          e.target.style.boxShadow = 'none';
-                        }}
-                      />
-                    </InputGroup>
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                      <FiHash className="me-2" style={{ color: logoColors.primary }} />
-                      Stock Quantity
-                    </Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="stock"
-                      value={formData.stock}
-                      onChange={handleChange}
-                      required
-                      style={{
-                        borderColor: logoColors.light,
-                        padding: '0.75rem',
-                        borderRadius: '8px',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = logoColors.primary;
-                        e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = logoColors.light;
-                        e.target.style.boxShadow = 'none';
-                      }}
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              {/* Featured Toggle */}
-              <Row className="mb-3">
-                <Col md={6}>
-                  <Form.Group>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.75rem',
-                      background: logoColors.softGradient,
-                      borderRadius: '8px',
-                      border: `1px solid ${logoColors.light}`
-                    }}>
-                      <div
-                        style={{
-                          width: '44px',
-                          height: '24px',
-                          background: formData.featured ? logoColors.primary : '#e2e8f0',
-                          borderRadius: '12px',
-                          position: 'relative',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease',
-                          flexShrink: 0
-                        }}
-                        onClick={handleFeaturedToggle}
-                      >
-                        <div
+              <Form onSubmit={handleProductSubmit}>
+                {/* Basic Information */}
+                <div className="mb-4">
+                  <h5 style={{ color: C.charcoal, fontWeight: 600, marginBottom: '1rem', fontSize: '1rem' }}>
+                    Basic Information
+                  </h5>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                          <FiPackage className="me-2" style={{ color: C.red }} size={14} />
+                          Product Name *
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
                           style={{
-                            width: '20px',
-                            height: '20px',
-                            background: 'white',
-                            borderRadius: '50%',
-                            position: 'absolute',
-                            top: '2px',
-                            left: formData.featured ? '20px' : '2px',
-                            transition: 'left 0.3s ease',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            borderColor: C.border,
+                            padding: '0.75rem',
+                            borderRadius: '8px'
                           }}
                         />
-                      </div>
-                      <div style={{ fontWeight: '500', color: logoColors.dark }}>
-                        <FiStar className="me-1" style={{ color: logoColors.primary, verticalAlign: 'middle' }} />
-                        Feature on Home Page
-                      </div>
-                    </div>
-                    <Form.Text className="text-muted mt-1" style={{ color: '#718096', fontSize: '0.85rem' }}>
-                      Enable to show this product in the featured section on homepage
-                    </Form.Text>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                          <FiTag className="me-2" style={{ color: C.red }} size={14} />
+                          Category *
+                        </Form.Label>
+                        <Form.Select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleChange}
+                          required
+                          style={{
+                            borderColor: C.border,
+                            padding: '0.75rem',
+                            borderRadius: '8px'
+                          }}
+                        >
+                          <option value="">Select Category</option>
+                          {categories.map(cat => (
+                            <option key={cat._id} value={cat.name}>
+                              {cat.name}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                      <FiFileText className="me-2" style={{ color: C.red }} size={14} />
+                      Description
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={4}
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      style={{
+                        borderColor: C.border,
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        resize: 'vertical'
+                      }}
+                    />
                   </Form.Group>
-                </Col>
-              </Row>
-
-              {/* Variants Section */}
-              <div className="mb-4" style={{
-                background: logoColors.softGradient,
-                padding: '1.5rem',
-                borderRadius: '12px',
-                border: `1px solid ${logoColors.light}`
-              }}>
-                <h5 style={{ color: logoColors.dark, marginBottom: '1rem' }}>
-                  Product Variants (Optional)
-                </h5>
-                <p style={{ color: '#718096', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                  Add sizes and colors for this product. Leave empty if not applicable.
-                </p>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                        Sizes (comma separated)
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="sizes"
-                        value={formData.sizes || ''}
-                        onChange={handleChange}
-                        placeholder="e.g., S, M, L, XL, XXL"
-                        style={{
-                          borderColor: logoColors.light,
-                          padding: '0.75rem',
-                          borderRadius: '8px',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = logoColors.primary;
-                          e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = logoColors.light;
-                          e.target.style.boxShadow = 'none';
-                        }}
-                      />
-                      <Form.Text className="text-muted" style={{ color: '#718096' }}>
-                        Example: S, M, L, XL
-                      </Form.Text>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                        Colors (comma separated)
-                      </Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="colors"
-                        value={formData.colors || ''}
-                        onChange={handleChange}
-                        placeholder="e.g., Red, Blue, Green, Black"
-                        style={{
-                          borderColor: logoColors.light,
-                          padding: '0.75rem',
-                          borderRadius: '8px',
-                          transition: 'all 0.3s ease'
-                        }}
-                        onFocus={(e) => {
-                          e.target.style.borderColor = logoColors.primary;
-                          e.target.style.boxShadow = `0 0 0 3px ${logoColors.primary}20`;
-                        }}
-                        onBlur={(e) => {
-                          e.target.style.borderColor = logoColors.light;
-                          e.target.style.boxShadow = 'none';
-                        }}
-                      />
-                      <Form.Text className="text-muted" style={{ color: '#718096' }}>
-                        Example: Red, Blue, Black, White
-                      </Form.Text>
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </div>
-
-              {/* Main Product Images */}
-              <Form.Group className="mb-4">
-                <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                  <FiImage className="me-2" style={{ color: logoColors.primary }} />
-                  Main Product Images (gallery)
-                </Form.Label>
-                <div
-                  className="border rounded p-4 text-center"
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-                  onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleImageChange(e); }}
-                  style={{
-                    borderColor: isDragging ? logoColors.primary : logoColors.light,
-                    background: isDragging ? logoColors.softGradient : '#f8fafc',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    borderStyle: isDragging ? 'dashed' : 'solid',
-                    borderWidth: '2px'
-                  }}
-                >
-                  <FiUpload size={32} style={{ color: logoColors.primary, marginBottom: '1rem' }} />
-                  <p style={{ color: '#4A5568', marginBottom: '0.5rem' }}>
-                    Drag and drop main images here or click to browse (product gallery)
-                  </p>
-                  <Form.Control
-                    type="file"
-                    multiple
-                    onChange={handleImageChange}
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id="image-upload"
-                  />
-                  <Button
-                    variant="outline-primary"
-                    onClick={() => document.getElementById('image-upload').click()}
-                    style={{
-                      borderColor: logoColors.primary,
-                      color: logoColors.primary,
-                      background: 'white',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = logoColors.softGradient;
-                      e.target.style.color = logoColors.dark;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'white';
-                      e.target.style.color = logoColors.primary;
-                    }}
-                  >
-                    Select Images
-                  </Button>
-                  <Form.Text className="d-block mt-2" style={{ color: '#718096' }}>
-                    Upload main images for product gallery (JPEG, PNG, GIF)
-                  </Form.Text>
                 </div>
 
-                {imagePreviews.length > 0 && (
-                  <Row className="mt-3">
-                    {imagePreviews.map((preview, index) => (
-                      <Col key={index} xs={4} md={3} className="mb-2">
-                        <div className="position-relative">
-                          <Image
-                            src={preview}
-                            thumbnail
-                            style={{ height: '100px', width: '100%', objectFit: 'cover', borderColor: logoColors.light }}
+                {/* Pricing */}
+                <div className="mb-4">
+                  <h5 style={{ color: C.charcoal, fontWeight: 600, marginBottom: '1rem', fontSize: '1rem' }}>
+                    Pricing
+                  </h5>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                          <FiDollarSign className="me-2" style={{ color: C.red }} size={14} />
+                          Original Price *
+                        </Form.Label>
+                        <InputGroup>
+                          <InputGroup.Text style={{
+                            background: C.white,
+                            borderColor: C.border,
+                            color: C.red
+                          }}>
+                            Rs.
+                          </InputGroup.Text>
+                          <Form.Control
+                            type="number"
+                            name="originalPrice"
+                            value={formData.originalPrice}
+                            onChange={handleChange}
+                            required
+                            style={{ borderColor: C.border, padding: '0.75rem' }}
                           />
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            className="position-absolute top-0 end-0 m-1"
-                            onClick={() => removeImage(index)}
-                            style={{ background: '#dc3545', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px' }}
-                          >
-                            <FiX size={12} />
-                          </Button>
-                        </div>
-                      </Col>
-                    ))}
+                        </InputGroup>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                          <FiPercent className="me-2" style={{ color: C.red }} size={14} />
+                          Discounted Price *
+                        </Form.Label>
+                        <InputGroup>
+                          <InputGroup.Text style={{
+                            background: C.white,
+                            borderColor: C.border,
+                            color: C.red
+                          }}>
+                            Rs.
+                          </InputGroup.Text>
+                          <Form.Control
+                            type="number"
+                            name="discountedPrice"
+                            value={formData.discountedPrice}
+                            onChange={handleChange}
+                            required
+                            style={{ borderColor: C.border, padding: '0.75rem' }}
+                          />
+                        </InputGroup>
+                      </Form.Group>
+                    </Col>
                   </Row>
-                )}
-              </Form.Group>
-
-              {/* Design Images */}
-              <Form.Group className="mb-4">
-                <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                  <FiImage className="me-2" style={{ color: logoColors.primary }} />
-                  Design Images (variants - click to switch on product page)
-                </Form.Label>
-                <div
-                  className="border rounded p-4 text-center"
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-                  onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleDesignImageChange(e); }}
-                  style={{
-                    borderColor: isDragging ? logoColors.primary : logoColors.light,
-                    background: isDragging ? logoColors.softGradient : '#f8fafc',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    borderStyle: isDragging ? 'dashed' : 'solid',
-                    borderWidth: '2px'
-                  }}
-                >
-                  <FiUpload size={32} style={{ color: logoColors.primary, marginBottom: '1rem' }} />
-                  <p style={{ color: '#4A5568', marginBottom: '0.5rem' }}>
-                    Drag and drop design images here or click to browse
-                  </p>
-                  <Form.Control
-                    type="file"
-                    multiple
-                    onChange={handleDesignImageChange}
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id="design-upload"
-                  />
-                  <Button
-                    variant="outline-primary"
-                    onClick={() => document.getElementById('design-upload').click()}
-                    style={{
-                      borderColor: logoColors.primary,
-                      color: logoColors.primary,
-                      background: 'white',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = logoColors.softGradient;
-                      e.target.style.color = logoColors.dark;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = 'white';
-                      e.target.style.color = logoColors.primary;
-                    }}
-                  >
-                    Select Design Images
-                  </Button>
-                  <Form.Text className="d-block mt-2" style={{ color: '#718096' }}>
-                    Upload multiple design variant images (will appear as clickable thumbnails on product page)
-                  </Form.Text>
                 </div>
 
-                {designPreviews.length > 0 && (
-                  <Row className="mt-3">
-                    {designPreviews.map((preview, index) => (
-                      <Col key={index} xs={4} md={3} className="mb-2">
-                        <div className="position-relative">
-                          <Image
-                            src={preview}
-                            thumbnail
-                            style={{ height: '100px', width: '100%', objectFit: 'cover', borderColor: logoColors.light }}
-                          />
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            className="position-absolute top-0 end-0 m-1"
-                            onClick={() => removeDesignImage(index)}
-                            style={{ background: '#dc3545', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px' }}
+                {/* Inventory */}
+                <div className="mb-4">
+                  <h5 style={{ color: C.charcoal, fontWeight: 600, marginBottom: '1rem', fontSize: '1rem' }}>
+                    Inventory
+                  </h5>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                          <FiHash className="me-2" style={{ color: C.red }} size={14} />
+                          Stock Quantity *
+                        </Form.Label>
+                        <Form.Control
+                          type="number"
+                          name="stock"
+                          value={formData.stock}
+                          onChange={handleChange}
+                          required
+                          style={{
+                            borderColor: C.border,
+                            padding: '0.75rem',
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                          padding: '0.75rem',
+                          background: C.redLight,
+                          borderRadius: '8px',
+                          border: `1px solid ${C.border}`
+                        }}>
+                          <div
+                            style={{
+                              width: '44px',
+                              height: '24px',
+                              background: formData.featured ? C.red : C.border,
+                              borderRadius: '12px',
+                              position: 'relative',
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease',
+                              flexShrink: 0
+                            }}
+                            onClick={handleFeaturedToggle}
                           >
-                            <FiX size={12} />
-                          </Button>
+                            <div
+                              style={{
+                                width: '20px',
+                                height: '20px',
+                                background: C.white,
+                                borderRadius: '50%',
+                                position: 'absolute',
+                                top: '2px',
+                                left: formData.featured ? '20px' : '2px',
+                                transition: 'left 0.3s ease',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }}
+                            />
+                          </div>
+                          <div style={{ fontWeight: 500, color: C.charcoal }}>
+                            <FiStar className="me-1" style={{ color: C.red, verticalAlign: 'middle' }} />
+                            Feature on Home Page
+                          </div>
                         </div>
-                      </Col>
-                    ))}
+                      </Form.Group>
+                    </Col>
                   </Row>
-                )}
-              </Form.Group>
+                </div>
 
-              <Button
-                variant="primary"
-                type="submit"
-                className="w-100 py-3"
-                style={{
-                  background: logoColors.gradient,
-                  border: 'none',
-                  fontSize: '1.1rem',
-                  fontWeight: '500',
-                  borderRadius: '8px',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.opacity = '0.9';
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = `0 4px 15px ${logoColors.primary}40`;
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.opacity = '1';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = 'none';
-                }}
-              >
-                <FiPackage size={20} />
-                Add Product
-              </Button>
-            </Form>
-          </Card.Body>
-        </Card>
-      </Container>
-    </Container>
+                {/* Variants Section */}
+                <div className="mb-4" style={{
+                  background: C.redLight,
+                  padding: '1.5rem',
+                  borderRadius: '12px',
+                  border: `1px solid ${C.border}`
+                }}>
+                  <h5 style={{ color: C.charcoal, marginBottom: '0.5rem', fontWeight: 600, fontSize: '1rem' }}>
+                    Product Variants (Optional)
+                  </h5>
+                  <p style={{ color: C.gray, fontSize: '0.85rem', marginBottom: '1rem' }}>
+                    Add sizes and colors for this product. Leave empty if not applicable.
+                  </p>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                          Sizes (comma separated)
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="sizes"
+                          value={formData.sizes || ''}
+                          onChange={handleChange}
+                          placeholder="e.g., S, M, L, XL, XXL"
+                          style={{
+                            borderColor: C.border,
+                            padding: '0.75rem',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Form.Text className="text-muted" style={{ color: C.gray }}>
+                          Example: S, M, L, XL
+                        </Form.Text>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-3">
+                        <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                          Colors (comma separated)
+                        </Form.Label>
+                        <Form.Control
+                          type="text"
+                          name="colors"
+                          value={formData.colors || ''}
+                          onChange={handleChange}
+                          placeholder="e.g., Red, Blue, Green, Black"
+                          style={{
+                            borderColor: C.border,
+                            padding: '0.75rem',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Form.Text className="text-muted" style={{ color: C.gray }}>
+                          Example: Red, Blue, Black, White
+                        </Form.Text>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </div>
+
+                {/* Main Product Images */}
+                <div className="mb-4">
+                  <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                    <FiImage className="me-2" style={{ color: C.red }} size={14} />
+                    Main Product Images (gallery)
+                  </Form.Label>
+                  <div
+                    className="border rounded p-4 text-center"
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                    onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleImageChange(e); }}
+                    style={{
+                      borderColor: isDragging ? C.red : C.border,
+                      background: isDragging ? C.redLight : C.lightGray,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      borderStyle: isDragging ? 'dashed' : 'solid',
+                      borderWidth: '2px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <FiUpload size={32} style={{ color: C.red, marginBottom: '1rem' }} />
+                    <p style={{ color: C.charcoal, marginBottom: '0.5rem' }}>
+                      Drag and drop main images here or click to browse
+                    </p>
+                    <Form.Control
+                      type="file"
+                      multiple
+                      onChange={handleImageChange}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id="image-upload"
+                    />
+                    <Button
+                      variant="outline-primary"
+                      onClick={() => document.getElementById('image-upload').click()}
+                      style={{
+                        borderColor: C.red,
+                        color: C.red,
+                        background: C.white,
+                        borderRadius: '30px',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = C.redLight;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = C.white;
+                      }}
+                    >
+                      Select Images
+                    </Button>
+                    <Form.Text className="d-block mt-2" style={{ color: C.gray }}>
+                      Upload main images for product gallery (JPEG, PNG, WEBP)
+                    </Form.Text>
+                  </div>
+
+                  {imagePreviews.length > 0 && (
+                    <Row className="mt-3">
+                      {imagePreviews.map((preview, index) => (
+                        <Col key={index} xs={4} md={3} className="mb-2">
+                          <div className="position-relative">
+                            <Image
+                              src={preview}
+                              thumbnail
+                              style={{ height: '100px', width: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                            />
+                            <button
+                              onClick={() => removeImage(index)}
+                              style={{
+                                position: 'absolute',
+                                top: '4px',
+                                right: '4px',
+                                background: '#dc3545',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '4px',
+                                color: C.white,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <FiX size={10} />
+                            </button>
+                          </div>
+                        </Col>
+                      ))}
+                    </Row>
+                  )}
+                </div>
+
+                {/* Design Images */}
+                <div className="mb-4">
+                  <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
+                    <FiImage className="me-2" style={{ color: C.red }} size={14} />
+                    Design Images (variants)
+                  </Form.Label>
+                  <div
+                    className="border rounded p-4 text-center"
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingDesign(true); }}
+                    onDragEnter={(e) => { e.preventDefault(); setIsDraggingDesign(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDraggingDesign(false); }}
+                    onDrop={(e) => { e.preventDefault(); setIsDraggingDesign(false); handleDesignImageChange(e); }}
+                    style={{
+                      borderColor: isDraggingDesign ? C.red : C.border,
+                      background: isDraggingDesign ? C.redLight : C.lightGray,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      borderStyle: isDraggingDesign ? 'dashed' : 'solid',
+                      borderWidth: '2px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <FiUpload size={32} style={{ color: C.red, marginBottom: '1rem' }} />
+                    <p style={{ color: C.charcoal, marginBottom: '0.5rem' }}>
+                      Drag and drop design images here or click to browse
+                    </p>
+                    <Form.Control
+                      type="file"
+                      multiple
+                      onChange={handleDesignImageChange}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id="design-upload"
+                    />
+                    <Button
+                      variant="outline-primary"
+                      onClick={() => document.getElementById('design-upload').click()}
+                      style={{
+                        borderColor: C.red,
+                        color: C.red,
+                        background: C.white,
+                        borderRadius: '30px',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = C.redLight;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = C.white;
+                      }}
+                    >
+                      Select Design Images
+                    </Button>
+                    <Form.Text className="d-block mt-2" style={{ color: C.gray }}>
+                      Upload multiple design variant images (will appear as clickable thumbnails)
+                    </Form.Text>
+                  </div>
+
+                  {designPreviews.length > 0 && (
+                    <Row className="mt-3">
+                      {designPreviews.map((preview, index) => (
+                        <Col key={index} xs={4} md={3} className="mb-2">
+                          <div className="position-relative">
+                            <Image
+                              src={preview}
+                              thumbnail
+                              style={{ height: '100px', width: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                            />
+                            <button
+                              onClick={() => removeDesignImage(index)}
+                              style={{
+                                position: 'absolute',
+                                top: '4px',
+                                right: '4px',
+                                background: '#dc3545',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '4px',
+                                color: C.white,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <FiX size={10} />
+                            </button>
+                          </div>
+                        </Col>
+                      ))}
+                    </Row>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-100 py-3"
+                  style={{
+                    background: C.gradient,
+                    border: 'none',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    borderRadius: '30px',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.opacity = '0.9';
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = `0 4px 15px ${C.red}40`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.opacity = '1';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                >
+                  <FiPackage size={18} />
+                  Add Product
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Container>
+      </div>
+    </>
   );
 }

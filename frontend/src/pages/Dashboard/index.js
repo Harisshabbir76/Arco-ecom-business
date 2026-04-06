@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Spinner, Button, Row, Col, Card } from 'react-bootstrap';
+import { Container, Spinner, Button, Row, Col, Card, Nav } from 'react-bootstrap';
 import {
     FiLogOut,
     FiPackage,
@@ -15,24 +15,34 @@ import {
     FiTag,
     FiBox,
     FiHelpCircle,
-    FiImage
+    FiImage,
+    FiMenu,
+    FiX,
+    FiHome,
+    FiBarChart2
 } from 'react-icons/fi';
 
-// Navbar color palette - Minimal version
-const logoColors = {
-    primary: '#fe7e8b',
-    light: '#ffd1d4',
-    dark: '#d64555',
-    background: '#fff9fa',
-    gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)',
-    softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)',
+const C = {
+    red:       '#CC1B1B',
+    redDark:   '#A01212',
+    redDeep:   '#7A0C0C',
+    redLight:  '#fdf2f2',
+    charcoal:  '#1e1e1e',
+    white:     '#ffffff',
+    lightGray: '#f7f7f7',
+    border:    '#e8e8e8',
+    gray:      '#888888',
+    gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 export default function Dashboard() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [user, setUser] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const [stats, setStats] = useState({
         products: 0,
         orders: 0,
@@ -40,21 +50,30 @@ export default function Dashboard() {
     });
 
     useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 768);
+            if (window.innerWidth > 768) {
+                setSidebarOpen(true);
+            } else {
+                setSidebarOpen(false);
+            }
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    useEffect(() => {
         const checkAuth = async () => {
             try {
                 const token = localStorage.getItem('token');
-
                 if (!token) {
                     navigate('/404');
                     return;
                 }
-
                 const response = await axios.get(`${process.env.REACT_APP_API_URL}/auth/me`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-
                 if (response.data.user?.email === '05harisshabbir@gmail.com') {
                     setIsAuthorized(true);
                     setUser(response.data.user);
@@ -69,320 +88,395 @@ export default function Dashboard() {
                 setIsLoading(false);
             }
         };
+        checkAuth();
+    }, [navigate]);
 
+    useEffect(() => {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem('token');
                 const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/dashboard/stats`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 setStats(response.data);
             } catch (error) {
                 console.error('Error fetching stats:', error);
             }
         };
-
-        checkAuth();
         fetchStats();
-    }, [navigate]);
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/login');
     };
 
+    const menuItems = [
+        { title: 'Dashboard', icon: FiHome, path: '/dashboard' },
+        { title: 'Add Product', icon: FiPackage, path: '/dashboard/add-product' },
+        { title: 'Catalog', icon: FiGrid, path: '/dashboard/catalog' },
+        { title: 'Orders', icon: FiShoppingBag, path: '/dashboard/order-management' },
+        { title: 'Messages', icon: FiMessageSquare, path: '/dashboard/contactus' },
+        { title: 'Categories', icon: FiGrid, path: '/dashboard/categories' },
+        { title: 'Hero Slider', icon: FiImage, path: '/dashboard/hero' },
+        { title: 'Banners', icon: FiImage, path: '/dashboard/banners' },
+        { title: 'Discounts', icon: FiTag, path: '/dashboard/discounts' },
+        { title: 'Bundles', icon: FiBox, path: '/dashboard/bundles' },
+        { title: 'Shipping', icon: FiTruck, path: '/dashboard/shipping' },
+        { title: 'FAQs', icon: FiHelpCircle, path: '/dashboard/faqs' }
+    ];
+
+    const statItems = [
+        { label: 'Total Products', value: stats.products, icon: FiPackage, color: C.red },
+        { label: 'Total Orders', value: stats.orders, icon: FiShoppingBag, color: C.red },
+        { label: 'Unread Messages', value: stats.messages, icon: FiMessageSquare, color: C.red },
+    ];
+
     if (isLoading) {
         return (
-            <Container
-                fluid
-                className="d-flex justify-content-center align-items-center"
-                style={{
-                    minHeight: '100vh',
-                    background: logoColors.background
-                }}
-            >
+            <div style={{ minHeight: '100vh', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div className="text-center">
-                    <Spinner
-                        animation="border"
-                        style={{ color: logoColors.primary }}
-                    />
-                    <p className="mt-3" style={{ color: '#666' }}>Loading dashboard...</p>
+                    <Spinner animation="border" style={{ color: C.red, width: '2.5rem', height: '2.5rem', borderWidth: '3px' }} />
+                    <p style={{ fontFamily: 'Barlow, sans-serif', color: C.gray, marginTop: '1rem' }}>Loading dashboard...</p>
                 </div>
-            </Container>
+            </div>
         );
     }
 
     if (!isAuthorized) {
         return (
-            <Container
-                fluid
-                className="d-flex justify-content-center align-items-center"
-                style={{
-                    minHeight: '100vh',
-                    background: logoColors.background
-                }}
-            >
-                <Card
-                    className="border-0 shadow-sm text-center p-5"
-                    style={{
-                        maxWidth: '400px',
-                        borderRadius: '12px'
-                    }}
-                >
+            <div style={{ minHeight: '100vh', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Card className="border-0 shadow-sm text-center p-5" style={{ maxWidth: '400px', borderRadius: '12px', border: `1px solid ${C.border}` }}>
                     <div className="mb-4">
-                        <FiShield size={48} style={{ color: logoColors.light }} />
+                        <FiShield size={48} style={{ color: C.red }} />
                     </div>
-                    <h5 style={{ color: logoColors.dark }}>Access Denied</h5>
-                    <p style={{ color: '#666', marginBottom: '2rem', fontSize: '0.9rem' }}>
+                    <h5 style={{ color: C.charcoal }}>Access Denied</h5>
+                    <p style={{ color: C.gray, marginBottom: '2rem', fontSize: '0.9rem' }}>
                         You don't have permission to access this page.
                     </p>
-                    <Button
-                        variant="primary"
-                        onClick={() => navigate('/')}
-                        style={{
-                            background: logoColors.gradient,
-                            border: 'none',
-                            padding: '0.6rem 2rem',
-                            borderRadius: '6px',
-                            fontSize: '0.9rem'
-                        }}
-                    >
+                    <Button onClick={() => navigate('/')} style={{ background: C.gradient, border: 'none', padding: '0.6rem 2rem', borderRadius: '30px', fontSize: '0.9rem' }}>
                         Return Home
                     </Button>
                 </Card>
-            </Container>
+            </div>
         );
     }
 
-    const dashboardItems = [
-        {
-            title: 'Add Product',
-            icon: <FiPackage size={20} />,
-            path: '/dashboard/add-product',
-            description: 'Create new product'
-        },
-        {
-            title: 'Orders',
-            icon: <FiShoppingBag size={20} />,
-            path: '/dashboard/order-management',
-            description: 'Manage orders'
-        },
-        {
-            title: 'Messages',
-            icon: <FiMessageSquare size={20} />,
-            path: '/dashboard/contactus',
-            description: 'Customer inquiries'
-        },
-        {
-            title: 'Catalog',
-            icon: <FiGrid size={20} />,
-            path: '/dashboard/catalog',
-            description: 'Product catalog'
-        },
-        {
-            title: 'Shipping',
-            icon: <FiTruck size={20} />,
-            path: '/dashboard/shipping',
-            description: 'Delivery settings'
-        },
-        {
-            title: 'Categories',
-            icon: <FiGrid size={20} />,
-            path: '/dashboard/categories',
-            description: 'Manage categories'
-        },
-        {
-            title: 'Hero Slider',
-            icon: <FiGrid size={20} />,
-            path: '/dashboard/hero',
-            description: 'Home page slider'
-        },
-        {
-            title: 'Discounts',
-            icon: <FiTag size={20} />,
-            path: '/dashboard/discounts',
-            description: 'Coupons & offers'
-        },
-        {
-            title: 'Bundles',
-            icon: <FiBox size={20} />,
-            path: '/dashboard/bundles',
-            description: 'Product bundles'
-        },
-        {
-            title: 'FAQs',
-            icon: <FiHelpCircle size={20} />,
-            path: '/dashboard/faqs',
-            description: 'Frequently asked questions'
-        },
-        {
-            title: 'Banner',
-            icon: <FiImage size={20} />,
-            path: '/dashboard/banners',
-            description: 'Manage site banners'
-        }
-    ];
-
-    const statItems = [
-        { label: 'Products', value: stats.products, icon: FiPackage },
-        { label: 'Orders', value: stats.orders, icon: FiShoppingBag },
-        { label: 'Messages', value: stats.messages, icon: FiMessageSquare },
-        { label: 'Security', value: 'High', icon: FiLock }
-    ];
-
     return (
-        <Container fluid style={{ background: logoColors.background, minHeight: '100vh' }}>
-            {/* Simple Header */}
-            <div style={{
-                background: 'white',
-                borderBottom: '1px solid rgba(0,0,0,0.05)',
-                padding: '1rem 0'
-            }}>
-                <Container>
-                    <Row className="align-items-center">
-                        <Col xs={6}>
-                            <h6 style={{ color: logoColors.dark, margin: 0 }}>Dashboard</h6>
-                        </Col>
-                        <Col xs={6} className="text-end">
-                            <Button
-                                variant="link"
-                                onClick={handleLogout}
-                                className="p-0"
-                                style={{
-                                    color: logoColors.primary,
-                                    textDecoration: 'none',
-                                    fontSize: '0.9rem'
-                                }}
-                            >
-                                <FiLogOut className="me-1" size={14} />
-                                Logout
-                            </Button>
-                        </Col>
-                    </Row>
-                </Container>
-            </div>
+        <>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+                * { font-family: 'Barlow', sans-serif; }
+                .sidebar-item {
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                }
+                .sidebar-item:hover {
+                    background: ${C.redLight};
+                    padding-left: 1.5rem;
+                }
+                .sidebar-item.active {
+                    background: ${C.redLight};
+                    border-left: 3px solid ${C.red};
+                    color: ${C.red};
+                }
+                .sidebar-item.active .sidebar-icon {
+                    color: ${C.red};
+                }
+                .overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.5);
+                    z-index: 998;
+                }
+                @media (max-width: 768px) {
+                    .sidebar {
+                        transform: translateX(-100%);
+                        transition: transform 0.3s ease;
+                    }
+                    .sidebar.open {
+                        transform: translateX(0);
+                    }
+                }
+            `}</style>
 
-            <Container className="py-4">
-                {/* Welcome Text - Minimal */}
-                <Row className="mb-4">
-                    <Col>
-                        <p style={{ color: '#999', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                            Welcome back,
-                        </p>
-                        <h5 style={{ color: logoColors.dark, fontWeight: '500' }}>
-                            {user?.name || 'Admin'}
-                        </h5>
-                    </Col>
-                </Row>
+            <div style={{ minHeight: '100vh', background: C.white, display: 'flex' }}>
+                {/* Mobile Menu Button */}
+                {isMobile && (
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        style={{
+                            position: 'fixed',
+                            top: '1rem',
+                            left: '1rem',
+                            zIndex: 1000,
+                            background: C.gradient,
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.5rem',
+                            color: C.white,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {sidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+                    </button>
+                )}
 
-                {/* Stats Cards - Minimal */}
-                <Row className="g-3 mb-4">
-                    {statItems.map((item, index) => (
-                        <Col key={index} xs={6} md={3}>
-                            <Card className="border-0 h-100" style={{
-                                background: 'white',
+                {/* Overlay for mobile */}
+                {isMobile && sidebarOpen && <div className="overlay" onClick={() => setSidebarOpen(false)} />}
+
+                {/* Sidebar */}
+                <div className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{
+                    width: '280px',
+                    background: C.white,
+                    borderRight: `1px solid ${C.border}`,
+                    minHeight: '100vh',
+                    position: isMobile ? 'fixed' : 'sticky',
+                    top: 0,
+                    left: 0,
+                    zIndex: 999,
+                    overflowY: 'auto'
+                }}>
+                    {/* Sidebar Header */}
+                    <div style={{ padding: '1.5rem', borderBottom: `1px solid ${C.border}`, textAlign: 'center' }}>
+                        <div style={{
+                            width: '50px',
+                            height: '50px',
+                            background: C.gradient,
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 0.75rem'
+                        }}>
+                            <FiPackage size={24} color={C.white} />
+                        </div>
+                        <h5 style={{ color: C.charcoal, fontWeight: 600, marginBottom: '0.25rem' }}>Admin Panel</h5>
+                        <p style={{ color: C.gray, fontSize: '0.75rem', marginBottom: 0 }}>{user?.name || 'Administrator'}</p>
+                    </div>
+
+                    {/* Navigation */}
+                    <div style={{ padding: '1rem 0' }}>
+                        {menuItems.map((item, index) => {
+                            const isActive = location.pathname === item.path;
+                            return (
+                                <div
+                                    key={index}
+                                    className={`sidebar-item ${isActive ? 'active' : ''}`}
+                                    onClick={() => {
+                                        navigate(item.path);
+                                        if (isMobile) setSidebarOpen(false);
+                                    }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                        padding: '0.75rem 1.5rem',
+                                        color: isActive ? C.red : C.gray,
+                                        borderLeft: isActive ? `3px solid ${C.red}` : '3px solid transparent'
+                                    }}
+                                >
+                                    <item.icon size={18} className="sidebar-icon" style={{ color: isActive ? C.red : C.gray }} />
+                                    <span style={{ fontSize: '0.9rem', fontWeight: isActive ? 600 : 400 }}>{item.title}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Logout Button */}
+                    <div style={{ padding: '1rem 1.5rem', borderTop: `1px solid ${C.border}`, marginTop: 'auto' }}>
+                        <div
+                            className="sidebar-item"
+                            onClick={handleLogout}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.75rem',
                                 borderRadius: '8px',
-                                boxShadow: 'none'
-                            }}>
-                                <Card.Body className="p-3">
-                                    <div className="d-flex align-items-center mb-2">
-                                        <item.icon size={14} style={{ color: logoColors.light, marginRight: '0.5rem' }} />
-                                        <span style={{ color: '#666', fontSize: '0.75rem' }}>{item.label}</span>
-                                    </div>
-                                    <h4 style={{
-                                        color: logoColors.dark,
-                                        fontSize: '1.3rem',
-                                        fontWeight: '500',
-                                        margin: 0
-                                    }}>
-                                        {item.value}
-                                    </h4>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
+                                cursor: 'pointer',
+                                color: C.red
+                            }}
+                        >
+                            <FiLogOut size={18} />
+                            <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Logout</span>
+                        </div>
+                    </div>
+                </div>
 
-                {/* Section Label */}
-                <Row className="mb-3">
-                    <Col>
-                        <p style={{ color: '#999', fontSize: '0.75rem', margin: 0 }}>
-                            MANAGEMENT
-                        </p>
-                    </Col>
-                </Row>
+                {/* Main Content */}
+                <div style={{
+                    flex: 1,
+                    padding: isMobile ? '1rem' : '1.5rem',
+                    marginTop: isMobile ? '3rem' : 0
+                }}>
+                    {/* Welcome Header */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: C.charcoal, marginBottom: '0.25rem' }}>
+                            Welcome back, {user?.name?.split(' ')[0] || 'Admin'}
+                        </h1>
+                        <p style={{ color: C.gray, fontSize: '0.85rem' }}>Here's what's happening with your store today.</p>
+                    </div>
 
-                {/* Dashboard Items - Minimal Grid */}
-                <Row className="g-2">
-                    {dashboardItems.map((item, index) => (
-                        <Col key={index} xs={6} md={4}>
-                            <Card
-                                className="border-0 h-100"
+                    {/* Stats Cards */}
+                    <Row className="g-3 mb-4">
+                        {statItems.map((item, index) => (
+                            <Col key={index} xs={12} sm={6} md={4}>
+                                <Card className="border-0 h-100" style={{
+                                    borderRadius: '12px',
+                                    border: `1px solid ${C.border}`,
+                                    background: C.white
+                                }}>
+                                    <Card.Body className="p-3">
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <p style={{ color: C.gray, fontSize: '0.7rem', marginBottom: '0.25rem' }}>{item.label}</p>
+                                                <h3 style={{ color: C.charcoal, fontSize: '1.5rem', fontWeight: 700, marginBottom: 0 }}>{item.value}</h3>
+                                            </div>
+                                            <div style={{
+                                                width: '40px',
+                                                height: '40px',
+                                                background: C.redLight,
+                                                borderRadius: '10px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <item.icon size={20} color={C.red} />
+                                            </div>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
+
+                    {/* Quick Actions */}
+                    <div style={{ marginBottom: '1rem' }}>
+                        <h6 style={{ color: C.gray, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quick Actions</h6>
+                    </div>
+                    <Row className="g-2">
+                        <Col xs={6} sm={4} md={3}>
+                            <div
+                                onClick={() => navigate('/dashboard/add-product')}
                                 style={{
-                                    background: 'white',
-                                    borderRadius: '6px',
+                                    background: C.white,
+                                    border: `1px solid ${C.border}`,
+                                    borderRadius: '10px',
+                                    padding: '1rem',
+                                    textAlign: 'center',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s ease'
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = logoColors.softGradient;
+                                    e.currentTarget.style.borderColor = C.red;
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'white';
+                                    e.currentTarget.style.borderColor = C.border;
+                                    e.currentTarget.style.transform = 'translateY(0)';
                                 }}
-                                onClick={() => navigate(item.path)}
                             >
-                                <Card.Body className="p-3">
-                                    <div className="d-flex align-items-center mb-2">
-                                        <div
-                                            className="d-flex align-items-center justify-content-center rounded-circle"
-                                            style={{
-                                                background: logoColors.softGradient,
-                                                width: '24px',
-                                                height: '24px',
-                                                marginRight: '0.5rem'
-                                            }}
-                                        >
-                                            {React.cloneElement(item.icon, {
-                                                size: 12,
-                                                style: { color: logoColors.primary }
-                                            })}
-                                        </div>
-                                        <h6 style={{
-                                            color: logoColors.dark,
-                                            fontSize: '0.85rem',
-                                            fontWeight: '500',
-                                            margin: 0
-                                        }}>
-                                            {item.title}
-                                        </h6>
-                                    </div>
-                                    <p style={{
-                                        color: '#999',
-                                        fontSize: '0.7rem',
-                                        margin: 0,
-                                        paddingLeft: '2rem'
-                                    }}>
-                                        {item.description}
-                                    </p>
-                                </Card.Body>
-                            </Card>
+                                <FiPackage size={24} color={C.red} style={{ marginBottom: '0.5rem' }} />
+                                <p style={{ color: C.charcoal, fontSize: '0.75rem', marginBottom: 0, fontWeight: 500 }}>Add Product</p>
+                            </div>
                         </Col>
-                    ))}
-                </Row>
+                        <Col xs={6} sm={4} md={3}>
+                            <div
+                                onClick={() => navigate('/dashboard/order-management')}
+                                style={{
+                                    background: C.white,
+                                    border: `1px solid ${C.border}`,
+                                    borderRadius: '10px',
+                                    padding: '1rem',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = C.red;
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = C.border;
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                            >
+                                <FiShoppingBag size={24} color={C.red} style={{ marginBottom: '0.5rem' }} />
+                                <p style={{ color: C.charcoal, fontSize: '0.75rem', marginBottom: 0, fontWeight: 500 }}>View Orders</p>
+                            </div>
+                        </Col>
+                        <Col xs={6} sm={4} md={3}>
+                            <div
+                                onClick={() => navigate('/dashboard/discounts')}
+                                style={{
+                                    background: C.white,
+                                    border: `1px solid ${C.border}`,
+                                    borderRadius: '10px',
+                                    padding: '1rem',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = C.red;
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = C.border;
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                            >
+                                <FiTag size={24} color={C.red} style={{ marginBottom: '0.5rem' }} />
+                                <p style={{ color: C.charcoal, fontSize: '0.75rem', marginBottom: 0, fontWeight: 500 }}>Manage Discounts</p>
+                            </div>
+                        </Col>
+                        <Col xs={6} sm={4} md={3}>
+                            <div
+                                onClick={() => navigate('/dashboard/contactus')}
+                                style={{
+                                    background: C.white,
+                                    border: `1px solid ${C.border}`,
+                                    borderRadius: '10px',
+                                    padding: '1rem',
+                                    textAlign: 'center',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = C.red;
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = C.border;
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                }}
+                            >
+                                <FiMessageSquare size={24} color={C.red} style={{ marginBottom: '0.5rem' }} />
+                                <p style={{ color: C.charcoal, fontSize: '0.75rem', marginBottom: 0, fontWeight: 500 }}>View Messages</p>
+                            </div>
+                        </Col>
+                    </Row>
 
-                {/* Quick Actions Label */}
-                <Row className="mt-4 mb-2">
-                    <Col>
-                        <p style={{ color: '#999', fontSize: '0.75rem', margin: 0 }}>
-                            QUICK ACTIONS
-                        </p>
-                    </Col>
-                </Row>
-
-            </Container>
-        </Container>
+                    {/* Recent Activity Section */}
+                    <div style={{ marginTop: '2rem' }}>
+                        <div style={{ marginBottom: '1rem' }}>
+                            <h6 style={{ color: C.gray, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recent Activity</h6>
+                        </div>
+                        <Card style={{ borderRadius: '12px', border: `1px solid ${C.border}`, background: C.white }}>
+                            <Card.Body style={{ padding: '1rem' }}>
+                                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <FiBarChart2 size={32} color={C.gray} />
+                                    <p style={{ color: C.gray, fontSize: '0.85rem', marginTop: '0.5rem' }}>Activity data will appear here</p>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        </>
     );
 }

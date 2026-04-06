@@ -15,55 +15,56 @@ import {
   FiShoppingBag,
   FiChevronDown,
   FiPackage,
-  FiClock
+  FiClock,
+  FiUsers,
+  FiBarChart 
 } from 'react-icons/fi';
 import OrderDetailsModal from './OrderDetailsModal';
 import ExportOrders from './ExportOrders';
 
-/* ─── Design tokens ─────────────────────────────────────────────── */
+/* ─── Design tokens - Red Theme ─────────────────────────────────────────────── */
 const C = {
-  primary: '#fe7e8b',
-  secondary: '#e65c70',
-  light: '#ffd1d4',
-  dark: '#d64555',
-  bg: '#fff5f6',
-  card: '#FFFFFF',
-  muted: '#A0AEC0',
-  text: '#2D3748',
-  subtext: '#718096',
-  border: '#FFE4EC',
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)',
-  softGrad: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)',
-  tablHead: '#FFF8FA',
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#888888',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 /* ─── Injected global styles ─────────────────────────────────────── */
 const GlobalStyle = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
 
     body { 
-      background: ${C.bg}; 
-      font-family: 'DM Sans', sans-serif;
+      background: ${C.white}; 
+      font-family: 'Barlow', sans-serif;
       margin: 0;
       padding: 0;
     }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: ${C.bg}; }
-    ::-webkit-scrollbar-thumb { background: ${C.light}; border-radius: 99px; }
+    ::-webkit-scrollbar-track { background: ${C.white}; }
+    ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: ${C.red}; }
 
     /* ── Tab overrides ── */
     .om-tabs .nav-link {
-      color: ${C.subtext};
-      font-weight: 500;
+      color: ${C.gray};
+      fontWeight: 500;
       font-size: 0.875rem;
       border: none !important;
       padding: 0.875rem 1.25rem;
       background: transparent;
       transition: color .2s;
       position: relative;
+      font-family: 'Barlow', sans-serif;
     }
     .om-tabs .nav-link::after {
       content: '';
@@ -75,12 +76,12 @@ const GlobalStyle = () => (
       transition: left .25s ease, right .25s ease;
     }
     .om-tabs .nav-link.active {
-      color: ${C.primary} !important;
+      color: ${C.red} !important;
       background: transparent !important;
-      font-weight: 600;
+      fontWeight: 600;
     }
     .om-tabs .nav-link.active::after { left: 0.75rem; right: 0.75rem; }
-    .om-tabs .nav-link:hover { color: ${C.primary} !important; }
+    .om-tabs .nav-link:hover { color: ${C.red} !important; }
     .om-tabs .nav { border-bottom: 1.5px solid ${C.border}; }
 
     /* ── Dropdown ── */
@@ -88,30 +89,24 @@ const GlobalStyle = () => (
       border: 1.5px solid ${C.border} !important;
       border-radius: 12px !important;
       padding: 0.4rem !important;
-      box-shadow: 0 8px 24px rgba(255,105,180,.12) !important;
+      box-shadow: 0 8px 24px rgba(204,27,27,.12) !important;
     }
     .om-dropdown-item {
       border-radius: 8px;
       font-size: 0.875rem;
       padding: 0.5rem 0.875rem;
-      color: ${C.text};
+      color: ${C.charcoal};
       transition: background .15s, color .15s;
+      font-family: 'Barlow', sans-serif;
     }
     .om-dropdown-item:hover {
-      background: ${C.softGrad} !important;
-      color: ${C.dark} !important;
+      background: ${C.redLight} !important;
+      color: ${C.red} !important;
     }
 
     /* ── Spin animation ── */
     @keyframes om-spin { to { transform: rotate(360deg); } }
     .om-spin { animation: om-spin .8s linear infinite; }
-
-    /* ── Pulse badge ── */
-    @keyframes om-pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(255,105,180,.35); }
-      50%       { box-shadow: 0 0 0 6px rgba(255,105,180,0); }
-    }
-    .om-pulse { animation: om-pulse 1.8s ease infinite; }
 
     /* ── Card entrance ── */
     @keyframes om-rise {
@@ -128,26 +123,28 @@ const GlobalStyle = () => (
     }
     
     .om-table th {
-      font-weight: 600;
+      fontWeight: 600;
       font-size: 0.75rem;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: ${C.subtext};
-      background: ${C.tablHead};
+      color: ${C.gray};
+      background: ${C.redLight};
       border-bottom: 1.5px solid ${C.border};
       padding: 1rem 0.75rem;
       text-align: left;
       white-space: nowrap;
+      font-family: 'Barlow', sans-serif;
     }
     
     .om-table td {
       padding: 1rem 0.75rem;
       border-bottom: 1px solid ${C.border};
       vertical-align: middle;
+      font-family: 'Barlow', sans-serif;
     }
     
     .om-table tbody tr:hover {
-      background: #FFF8FA;
+      background: ${C.redLight};
     }
 
     /* Column widths */
@@ -160,8 +157,8 @@ const GlobalStyle = () => (
     .om-table th:nth-child(7) { width: 23%; }  /* Actions */
 
     @media (max-width: 768px) {
-      .om-table th:nth-child(4) { width: 30%; }  /* More space for products on mobile */
-      .om-table th:nth-child(7) { width: 20%; }  /* Less space for actions */
+      .om-table th:nth-child(4) { width: 30%; }
+      .om-table th:nth-child(7) { width: 20%; }
     }
   `}</style>
 );
@@ -173,18 +170,19 @@ const StatPill = ({ label, value, icon: Icon, active }) => (
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
-    background: active ? C.gradient : 'white',
+    background: active ? C.gradient : C.white,
     border: `1.5px solid ${active ? 'transparent' : C.border}`,
-    borderRadius: '99px',
-    padding: '0.35rem 0.875rem 0.35rem 0.6rem',
+    borderRadius: '30px',
+    padding: '0.35rem 1rem 0.35rem 0.75rem',
     fontSize: '0.8rem',
     fontWeight: 600,
-    color: active ? 'white' : C.subtext,
-    boxShadow: active ? '0 4px 14px rgba(255,105,180,.3)' : 'none',
+    color: active ? C.white : C.gray,
+    boxShadow: active ? `0 4px 14px ${C.red}40` : 'none',
     transition: 'all .25s',
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    fontFamily: 'Barlow, sans-serif'
   }}>
-    {Icon && <Icon size={13} />}
+    {Icon && <Icon size={14} />}
     {label}: <span style={{ marginLeft: 3, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
   </div>
 );
@@ -193,13 +191,13 @@ const TabTitle = ({ icon, text, count, active }) => (
   <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
     {icon && React.cloneElement(icon, {
       size: 14,
-      style: { color: active ? C.primary : C.muted, flexShrink: 0 }
+      style: { color: active ? C.red : C.gray, flexShrink: 0 }
     })}
     <span>{text}</span>
     {count > 0 && (
       <span style={{
         background: active ? C.gradient : C.border,
-        color: active ? 'white' : C.subtext,
+        color: active ? C.white : C.gray,
         borderRadius: '99px',
         fontSize: '0.7rem',
         fontWeight: 700,
@@ -207,7 +205,7 @@ const TabTitle = ({ icon, text, count, active }) => (
         lineHeight: '1.6',
         minWidth: 22,
         textAlign: 'center',
-        ...(active ? { boxShadow: '0 2px 8px rgba(255,20,147,.3)' } : {})
+        ...(active ? { boxShadow: `0 2px 8px ${C.red}40` } : {})
       }}>
         {count}
       </span>
@@ -225,10 +223,10 @@ const StatusBadge = ({ status }) => {
       dot: '#FBBF24'
     },
     'out-for-delivery': {
-      bg: '#FCE7F3',
-      color: '#d64555',
+      bg: C.redLight,
+      color: C.red,
       label: 'Out for Delivery',
-      dot: C.primary
+      dot: C.red
     },
     completed: {
       bg: '#D1FAE5',
@@ -237,7 +235,7 @@ const StatusBadge = ({ status }) => {
       dot: '#10B981'
     },
   };
-  const s = map[status] || { bg: C.softGrad, color: C.dark, label: status, dot: C.light };
+  const s = map[status] || { bg: C.redLight, color: C.red, label: status, dot: C.red };
   return (
     <span style={{
       display: 'inline-flex',
@@ -268,9 +266,9 @@ const StatusDropdown = ({ order, onStatusUpdate }) => (
     <Dropdown.Toggle
       size="sm"
       style={{
-        background: 'transparent',
+        background: C.white,
         border: `1.5px solid ${C.border}`,
-        color: C.primary,
+        color: C.red,
         borderRadius: '6px',
         fontWeight: 500,
         fontSize: '0.78rem',
@@ -288,7 +286,7 @@ const StatusDropdown = ({ order, onStatusUpdate }) => (
         className="om-dropdown-item"
         onClick={() => onStatusUpdate(order._id, 'out-for-delivery')}
       >
-        <FiTruck size={13} style={{ marginRight: 6, color: C.primary }} />
+        <FiTruck size={13} style={{ marginRight: 6, color: C.red }} />
         Out for Delivery
       </Dropdown.Item>
       <Dropdown.Item
@@ -307,8 +305,8 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
   <div style={{ padding: '0.5rem 0 1rem' }}>
     {loading ? (
       <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-        <Spinner animation="border" style={{ color: C.primary, width: 36, height: 36, borderWidth: 3 }} />
-        <p style={{ marginTop: '1rem', color: C.muted, fontSize: '0.875rem', fontWeight: 500 }}>
+        <Spinner animation="border" style={{ color: C.red, width: 36, height: 36, borderWidth: 3 }} />
+        <p style={{ marginTop: '1rem', color: C.gray, fontSize: '0.875rem', fontWeight: 500 }}>
           Loading orders…
         </p>
       </div>
@@ -316,12 +314,12 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
       <div style={{ textAlign: 'center', padding: '5rem 0' }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%',
-          background: C.softGrad, margin: '0 auto 1rem',
+          background: C.redLight, margin: '0 auto 1rem',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-          <FiPackage size={28} style={{ color: C.light }} />
+          <FiPackage size={28} style={{ color: C.red }} />
         </div>
-        <p style={{ color: C.muted, fontWeight: 500, margin: 0 }}>{emptyMessage}</p>
+        <p style={{ color: C.gray, fontWeight: 500, margin: 0 }}>{emptyMessage}</p>
       </div>
     ) : (
       <div style={{ overflowX: 'auto', padding: '0 0.5rem' }}>
@@ -340,10 +338,9 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
           <tbody>
             {orders.map((order) => (
               <tr key={order._id}>
-                {/* ORDER ID */}
                 <td>
                   <span style={{
-                    color: C.primary,
+                    color: C.red,
                     fontWeight: 600,
                     fontFamily: 'monospace',
                     fontSize: '0.85rem'
@@ -352,16 +349,14 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
                   </span>
                 </td>
 
-                {/* CUSTOMER */}
                 <td>
-                  <span style={{ color: C.text, fontWeight: 500 }}>
+                  <span style={{ color: C.charcoal, fontWeight: 500 }}>
                     {order.customerName}
                   </span>
                 </td>
 
-                {/* DATE */}
                 <td>
-                  <span style={{ color: C.subtext, fontSize: '0.85rem' }}>
+                  <span style={{ color: C.gray, fontSize: '0.85rem' }}>
                     {new Date(order.orderDate).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -370,21 +365,20 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
                   </span>
                 </td>
 
-                {/* PRODUCTS - compact format */}
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     {order.products.slice(0, 2).map((p, idx) => (
                       <div key={p.productId} style={{
                         fontSize: '0.85rem',
-                        color: C.text,
+                        color: C.charcoal,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         maxWidth: '250px'
                       }}>
-                        {p.name} <span style={{ color: C.primary, fontWeight: 500 }}>x{p.quantity}</span>
+                        {p.name} <span style={{ color: C.red, fontWeight: 500 }}>x{p.quantity}</span>
                         {(p.size || p.color || p.selectedSize || p.selectedColor) && (
-                          <div style={{ fontSize: '0.7rem', color: C.primary, fontWeight: 600, marginTop: '1px' }}>
+                          <div style={{ fontSize: '0.7rem', color: C.red, fontWeight: 600, marginTop: '1px' }}>
                             {(p.size || p.selectedSize) && <span style={{ marginRight: '6px' }}>S: {p.size || p.selectedSize}</span>}
                             {(p.color || p.selectedColor) && <span>C: {p.color || p.selectedColor}</span>}
                           </div>
@@ -394,9 +388,9 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
                     {order.products.length > 2 && (
                       <span style={{
                         fontSize: '0.75rem',
-                        color: C.primary,
+                        color: C.red,
                         fontWeight: 600,
-                        background: C.softGrad,
+                        background: C.redLight,
                         padding: '2px 8px',
                         borderRadius: '12px',
                         display: 'inline-block',
@@ -408,33 +402,30 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
                   </div>
                 </td>
 
-                {/* TOTAL */}
                 <td>
                   <span style={{
                     fontWeight: 600,
                     fontSize: '0.9rem',
-                    color: C.primary
+                    color: C.red
                   }}>
                     Rs. {order.totalAmount.toFixed(2)}
                   </span>
                 </td>
 
-                {/* STATUS */}
                 <td>
                   <StatusBadge status={order.status} />
                 </td>
 
-                {/* ACTIONS - side by side */}
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <StatusDropdown order={order} onStatusUpdate={onStatusUpdate} />
                     <button
                       onClick={() => onViewDetails(order)}
                       style={{
-                        background: 'transparent',
+                        background: C.white,
                         border: `1.5px solid ${C.border}`,
                         borderRadius: '6px',
-                        color: C.subtext,
+                        color: C.gray,
                         fontWeight: 500,
                         fontSize: '0.78rem',
                         padding: '0.35rem 0.8rem',
@@ -443,12 +434,12 @@ const OrderTable = ({ orders, onStatusUpdate, onViewDetails, loading, emptyMessa
                         transition: 'all .2s'
                       }}
                       onMouseEnter={e => {
-                        e.currentTarget.style.borderColor = C.primary;
-                        e.currentTarget.style.color = C.primary;
+                        e.currentTarget.style.borderColor = C.red;
+                        e.currentTarget.style.color = C.red;
                       }}
                       onMouseLeave={e => {
                         e.currentTarget.style.borderColor = C.border;
-                        e.currentTarget.style.color = C.subtext;
+                        e.currentTarget.style.color = C.gray;
                       }}
                     >
                       Details
@@ -576,13 +567,12 @@ const OrderManagement = () => {
     });
   }, [filtered.all.length, filtered.completed.length, filtered.delivery.length]);
 
-  /* Loading screen */
   if (authLoading) return (
     <>
       <GlobalStyle />
       <div style={{
         minHeight: '100vh',
-        background: C.bg,
+        background: C.white,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -597,22 +587,25 @@ const OrderManagement = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 8px 24px rgba(255,105,180,.35)'
+          boxShadow: `0 8px 24px ${C.red}40`
         }}>
-          <FiShoppingBag size={24} color="white" />
+          <FiShoppingBag size={24} color={C.white} />
         </div>
-        <Spinner animation="border" style={{ color: C.primary, width: 28, height: 28, borderWidth: 2 }} />
-        <p style={{ color: C.muted, fontWeight: 500, margin: 0, fontSize: '0.875rem' }}>Verifying access…</p>
+        <Spinner animation="border" style={{ color: C.red, width: 28, height: 28, borderWidth: 2 }} />
+        <p style={{ color: C.gray, fontWeight: 500, margin: 0, fontSize: '0.875rem' }}>Verifying access…</p>
       </div>
     </>
   );
 
   if (!isAuthorized) return null;
 
+  // Calculate total revenue
+  const totalRevenue = filtered.all.reduce((sum, order) => sum + order.totalAmount, 0);
+
   return (
     <>
       <GlobalStyle />
-      <div style={{ background: C.bg, minHeight: '100vh', padding: '2rem 1rem' }}>
+      <div style={{ background: C.white, minHeight: '100vh', padding: '2rem 1rem' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
 
           {/* ── Header ── */}
@@ -625,41 +618,107 @@ const OrderManagement = () => {
             marginBottom: '1.5rem'
           }}>
             <div>
-              <p style={{
-                margin: 0,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                letterSpacing: '0.1em',
+              <div className="admin-products-eyebrow" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '7px',
+                fontFamily: 'Barlow, sans-serif',
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: C.light
+                color: C.red,
+                marginBottom: '0.5rem'
               }}>
+                <span style={{ width: '5px', height: '5px', background: C.red, borderRadius: '50%' }} />
                 Dashboard
-              </p>
+              </div>
               <h1 style={{
                 margin: 0,
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: 'clamp(1.5rem,4vw,2rem)',
-                color: C.dark,
-                lineHeight: 1.2
+                color: C.charcoal,
+                lineHeight: 1.2,
+                fontFamily: 'Barlow, sans-serif'
               }}>
                 Order Management
               </h1>
+              <div style={{
+                height: '3px',
+                width: '60px',
+                background: C.red,
+                borderRadius: '2px',
+                marginTop: '0.5rem'
+              }} />
             </div>
 
             {/* Stat pills */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               <StatPill label="Total" value={filteredCounts.all} icon={FiPackage} active />
               <StatPill label="Delivery" value={filteredCounts.delivery} icon={FiTruck} />
-              <StatPill label="Done" value={filteredCounts.completed} icon={FiCheckCircle} />
+              <StatPill label="Completed" value={filteredCounts.completed} icon={FiCheckCircle} />
+            </div>
+          </div>
+
+          {/* Revenue Summary Card */}
+          <div className="om-card" style={{
+            background: C.redLight,
+            borderRadius: 12,
+            border: `1px solid ${C.border}`,
+            padding: '1rem 1.5rem',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
+                background: C.white,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <FiBarChart  size={24} color={C.red} />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: C.gray, fontWeight: 500 }}>Total Revenue</p>
+                <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: C.red }}>
+                  Rs. {totalRevenue.toLocaleString()}
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
+                background: C.white,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <FiUsers size={24} color={C.red} />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: C.gray, fontWeight: 500 }}>Total Customers</p>
+                <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: C.charcoal }}>
+                  {new Set(orders.map(o => o.email)).size}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* ── Main card ── */}
           <div className="om-card" style={{
-            background: 'white',
+            background: C.white,
             borderRadius: 16,
             border: `1.5px solid ${C.border}`,
-            boxShadow: '0 4px 40px rgba(255,105,180,.08)',
+            boxShadow: `0 4px 40px ${C.red}08`,
             overflow: 'hidden'
           }}>
             {/* Card toolbar */}
@@ -671,7 +730,7 @@ const OrderManagement = () => {
               gap: '0.75rem',
               padding: '1rem 1.25rem',
               borderBottom: `1.5px solid ${C.border}`,
-              background: C.softGrad
+              background: C.redLight
             }}>
               <ExportOrders orders={filtered.all} />
 
@@ -679,9 +738,9 @@ const OrderManagement = () => {
                 {/* Time filter */}
                 <Dropdown>
                   <Dropdown.Toggle style={{
-                    background: 'white',
+                    background: C.white,
                     border: `1.5px solid ${C.border}`,
-                    color: C.text,
+                    color: C.charcoal,
                     borderRadius: 8,
                     fontWeight: 500,
                     fontSize: '0.8rem',
@@ -691,9 +750,9 @@ const OrderManagement = () => {
                     gap: '0.4rem',
                     boxShadow: 'none'
                   }}>
-                    <FiClock size={13} style={{ color: C.primary }} />
+                    <FiClock size={13} style={{ color: C.red }} />
                     {timeLabels[timeFilter]}
-                    <FiChevronDown size={12} style={{ color: C.muted }} />
+                    <FiChevronDown size={12} style={{ color: C.gray }} />
                   </Dropdown.Toggle>
                   <Dropdown.Menu className="om-dropdown-menu">
                     {Object.entries(timeLabels).map(([key, label], i) => (
@@ -704,7 +763,7 @@ const OrderManagement = () => {
                           onClick={() => setTimeFilter(key)}
                           style={{
                             fontWeight: timeFilter === key ? 700 : 400,
-                            color: timeFilter === key ? C.primary : C.text
+                            color: timeFilter === key ? C.red : C.charcoal
                           }}
                         >
                           {label}
@@ -719,9 +778,9 @@ const OrderManagement = () => {
                   onClick={fetchOrders}
                   disabled={loading}
                   style={{
-                    background: 'white',
+                    background: C.white,
                     border: `1.5px solid ${C.border}`,
-                    color: C.primary,
+                    color: C.red,
                     borderRadius: 8,
                     fontWeight: 500,
                     fontSize: '0.8rem',
@@ -760,7 +819,7 @@ const OrderManagement = () => {
               </Tab>
               <Tab
                 eventKey="delivery"
-                title={<TabTitle icon={<FiTruck />} text="Delivery" count={filteredCounts.delivery} active={activeTab === 'delivery'} />}
+                title={<TabTitle icon={<FiTruck />} text="Out for Delivery" count={filteredCounts.delivery} active={activeTab === 'delivery'} />}
               >
                 <OrderTable
                   orders={filtered.delivery}
@@ -788,7 +847,7 @@ const OrderManagement = () => {
           {/* Footer note */}
           <p style={{
             textAlign: 'center',
-            color: C.muted,
+            color: C.gray,
             fontSize: '0.75rem',
             marginTop: '1.25rem'
           }}>

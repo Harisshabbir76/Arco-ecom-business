@@ -1,4 +1,4 @@
-// CheckoutPage.js - Full version with Stripe Payment Integration
+// CheckoutPage.js - Cash on Delivery Only
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -12,83 +12,25 @@ import {
   ListGroup,
   Spinner,
 } from 'react-bootstrap';
-import { FiShoppingBag } from 'react-icons/fi';
+import { FiShoppingBag, FiArrowLeft, FiTruck, FiShield, FiLock } from 'react-icons/fi';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useCart } from './CartContext';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-// Navbar color palette
-const logoColors = {
-  primary: '#fe7e8b',
-  secondary: '#e65c70',
-  light: '#ffd1d4',
-  dark: '#d64555',
-  background: '#fff5f6',
-  lighterBg: '#fff9fa',
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)',
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffe0e3 100%)',
+const C = {
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#888888',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
-
-// Initialize Stripe with public key from env
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
-
-// Card Element styling - Professional design
-const cardElementOptions = {
-  style: {
-    base: {
-      fontSize: '16px',
-      color: '#2D3748',
-      '::placeholder': {
-        color: '#A0AEC0',
-        fontWeight: '400',
-      },
-      fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      fontSmoothing: 'antialiased',
-      iconColor: '#fe7e8b',
-    },
-    invalid: {
-      color: '#E53E3E',
-      iconColor: '#E53E3E',
-    },
-  },
-  hidePostalCode: true,
-  classes: {
-    base: 'stripe-card-element',
-    focus: 'stripe-card-element--focus',
-    invalid: 'stripe-card-element--invalid',
-  },
-};
-
-// Country name to ISO code mapping
-const countryCodeMap = {
-  'pakistan': 'PK',
-  'united states': 'US',
-  'united kingdom': 'GB',
-  'india': 'IN',
-  'canada': 'CA',
-  'australia': 'AU',
-  'germany': 'DE',
-  'france': 'FR',
-  'china': 'CN',
-  'japan': 'JP',
-  'uae': 'AE',
-  'united arab emirates': 'AE',
-  'saudi arabia': 'SA',
-  'Turkey': 'TR',
-};
-
-const getCountryCode = (countryName) => {
-  if (!countryName) return 'US';
-  const normalized = countryName.trim().toLowerCase();
-  return countryCodeMap[normalized] || normalized.toUpperCase();
-};
-
-// Checkout Form Component with Stripe - Combined Logic
+// Checkout Form Component - Cash on Delivery Only
 const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
-  const stripe = useStripe();
-  const elements = useElements();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -101,7 +43,6 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
     state: '',
     zipCode: '',
     country: '',
-    paymentMethod: 'creditCard'
   });
 
   const [couponCode, setCouponCode] = useState('');
@@ -111,9 +52,6 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [cardError, setCardError] = useState('');
-  const [processing, setProcessing] = useState(false);
-  const [isCardFocused, setIsCardFocused] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -190,114 +128,6 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
 
   const finalAmount = cartTotal - discountAmount;
 
-  const handlePayment = async (e) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    if (!validateForm()) return;
-
-    setProcessing(true);
-    setCardError('');
-
-    try {
-      // Create payment intent
-      const { data: { clientSecret } } = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/create-payment-intent`,
-        {
-          amount: Math.round(cartTotal * 100), // Convert to cents/paisa
-          currency: 'pkr',
-          products: cart.map(item => ({
-            productId: item._id || item.productId,
-            quantity: item.quantity,
-            price: item.discountedPrice || item.price,
-            category: item.category,
-            size: item.selectedSize,
-            color: item.selectedColor
-          })),
-          couponCode: couponStatus.type === 'success' ? couponCode : null
-        }
-      );
-
-      // Confirm payment with Stripe
-      const cardElement = elements.getElement(CardElement);
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            phone: formData.phone,
-            address: {
-              line1: formData.address,
-              city: formData.city,
-              state: formData.state,
-              country: getCountryCode(formData.country),
-            },
-          },
-        },
-      });
-
-      if (error) {
-        setCardError(error.message);
-        setProcessing(false);
-        return;
-      }
-
-      if (paymentIntent.status === 'succeeded') {
-        // Process the order on backend
-        const orderData = {
-          paymentIntentId: paymentIntent.id,
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          phone: formData.phone,
-          address: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.country}`,
-          city: formData.city,
-          zipCode: '',
-          products: cart.map(item => ({
-            productId: item._id || item.productId,
-            name: item.name,
-            quantity: item.quantity,
-            price: item.discountedPrice || item.price,
-            category: item.category,
-            size: item.selectedSize,
-            color: item.selectedColor
-          })),
-          totalAmount: cartTotal,
-          couponCode: couponStatus.type === 'success' ? couponCode : null,
-          paymentMethod: 'card'
-        };
-
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/process-payment`, orderData);
-
-        clearCart();
-
-        // Navigate to success page with all details
-        onOrderSuccess({
-          order: response.data.order,
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          phone: formData.phone,
-          address: orderData.address,
-          city: formData.city,
-          state: formData.state,
-          country: formData.country,
-          products: orderData.products,
-          totalAmount: finalAmount,
-          paymentMethod: 'card',
-          isPaymentSuccess: true
-        });
-      }
-    } catch (err) {
-      console.error('Payment error:', err);
-      setCardError('Payment failed. Please try again.');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
   const handleCODSubmit = async (e) => {
     e.preventDefault();
 
@@ -311,7 +141,7 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
         phone: formData.phone,
         address: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.country}`,
         city: formData.city,
-        zipCode: '',
+        zipCode: formData.zipCode,
         products: cart.map(item => ({
           productId: item._id || item.productId,
           name: item.name,
@@ -330,7 +160,6 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
 
       clearCart();
 
-      // Navigate to success page with all details
       onOrderSuccess({
         order: response.data,
         customerName: `${formData.firstName} ${formData.lastName}`,
@@ -356,13 +185,13 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
   return (
     <>
       {/* Shipping Information Card */}
-      <Card className="mb-4 border-0 shadow-sm" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+      <Card className="mb-4 border-0 shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden', border: `1px solid ${C.border}` }}>
         <Card.Header style={{
-          background: 'white',
-          borderBottom: `1px solid ${logoColors.light}`,
+          background: C.white,
+          borderBottom: `1px solid ${C.border}`,
           padding: '1rem 1.5rem'
         }}>
-          <h5 style={{ color: logoColors.dark, fontWeight: '600', margin: 0 }}>
+          <h5 style={{ color: C.charcoal, fontWeight: '600', margin: 0 }}>
             Shipping Information
           </h5>
         </Card.Header>
@@ -370,7 +199,7 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>First Name *</Form.Label>
+                <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>First Name *</Form.Label>
                 <Form.Control
                   type="text"
                   name="firstName"
@@ -379,19 +208,19 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
                   isInvalid={!!errors.firstName}
                   style={{
                     borderRadius: '8px',
-                    borderColor: logoColors.light,
+                    borderColor: C.border,
                     padding: '0.6rem 1rem',
                     transition: 'all 0.2s ease'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-                  onBlur={(e) => e.target.style.borderColor = logoColors.light}
+                  onFocus={(e) => e.target.style.borderColor = C.red}
+                  onBlur={(e) => e.target.style.borderColor = C.border}
                 />
                 <Form.Control.Feedback type="invalid">{errors.firstName}</Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Last Name *</Form.Label>
+                <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>Last Name *</Form.Label>
                 <Form.Control
                   type="text"
                   name="lastName"
@@ -400,11 +229,11 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
                   isInvalid={!!errors.lastName}
                   style={{
                     borderRadius: '8px',
-                    borderColor: logoColors.light,
+                    borderColor: C.border,
                     padding: '0.6rem 1rem'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-                  onBlur={(e) => e.target.style.borderColor = logoColors.light}
+                  onFocus={(e) => e.target.style.borderColor = C.red}
+                  onBlur={(e) => e.target.style.borderColor = C.border}
                 />
                 <Form.Control.Feedback type="invalid">{errors.lastName}</Form.Control.Feedback>
               </Form.Group>
@@ -412,7 +241,7 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
           </Row>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Email Address *</Form.Label>
+            <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>Email Address *</Form.Label>
             <Form.Control
               type="email"
               name="email"
@@ -421,17 +250,17 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
               isInvalid={!!errors.email}
               style={{
                 borderRadius: '8px',
-                borderColor: logoColors.light,
+                borderColor: C.border,
                 padding: '0.6rem 1rem'
               }}
-              onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-              onBlur={(e) => e.target.style.borderColor = logoColors.light}
+              onFocus={(e) => e.target.style.borderColor = C.red}
+              onBlur={(e) => e.target.style.borderColor = C.border}
             />
             <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Phone Number *</Form.Label>
+            <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>Phone Number *</Form.Label>
             <Form.Control
               type="tel"
               name="phone"
@@ -440,17 +269,17 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
               isInvalid={!!errors.phone}
               style={{
                 borderRadius: '8px',
-                borderColor: logoColors.light,
+                borderColor: C.border,
                 padding: '0.6rem 1rem'
               }}
-              onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-              onBlur={(e) => e.target.style.borderColor = logoColors.light}
+              onFocus={(e) => e.target.style.borderColor = C.red}
+              onBlur={(e) => e.target.style.borderColor = C.border}
             />
             <Form.Control.Feedback type="invalid">{errors.phone}</Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Street Address *</Form.Label>
+            <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>Street Address *</Form.Label>
             <Form.Control
               as="textarea"
               rows={2}
@@ -460,12 +289,12 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
               isInvalid={!!errors.address}
               style={{
                 borderRadius: '8px',
-                borderColor: logoColors.light,
+                borderColor: C.border,
                 padding: '0.6rem 1rem',
                 resize: 'vertical'
               }}
-              onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-              onBlur={(e) => e.target.style.borderColor = logoColors.light}
+              onFocus={(e) => e.target.style.borderColor = C.red}
+              onBlur={(e) => e.target.style.borderColor = C.border}
             />
             <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
           </Form.Group>
@@ -473,7 +302,7 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
           <Row>
             <Col md={4}>
               <Form.Group className="mb-3">
-                <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>City *</Form.Label>
+                <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>City *</Form.Label>
                 <Form.Control
                   type="text"
                   name="city"
@@ -482,18 +311,18 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
                   isInvalid={!!errors.city}
                   style={{
                     borderRadius: '8px',
-                    borderColor: logoColors.light,
+                    borderColor: C.border,
                     padding: '0.6rem 1rem'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-                  onBlur={(e) => e.target.style.borderColor = logoColors.light}
+                  onFocus={(e) => e.target.style.borderColor = C.red}
+                  onBlur={(e) => e.target.style.borderColor = C.border}
                 />
                 <Form.Control.Feedback type="invalid">{errors.city}</Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col md={4}>
               <Form.Group className="mb-3">
-                <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>State / Province *</Form.Label>
+                <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>State / Province *</Form.Label>
                 <Form.Control
                   type="text"
                   name="state"
@@ -502,18 +331,18 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
                   isInvalid={!!errors.state}
                   style={{
                     borderRadius: '8px',
-                    borderColor: logoColors.light,
+                    borderColor: C.border,
                     padding: '0.6rem 1rem'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-                  onBlur={(e) => e.target.style.borderColor = logoColors.light}
+                  onFocus={(e) => e.target.style.borderColor = C.red}
+                  onBlur={(e) => e.target.style.borderColor = C.border}
                 />
                 <Form.Control.Feedback type="invalid">{errors.state}</Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col md={4}>
               <Form.Group className="mb-3">
-                <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Zip Code</Form.Label>
+                <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>Zip Code</Form.Label>
                 <Form.Control
                   type="text"
                   name="zipCode"
@@ -521,18 +350,18 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
                   onChange={handleChange}
                   style={{
                     borderRadius: '8px',
-                    borderColor: logoColors.light,
+                    borderColor: C.border,
                     padding: '0.6rem 1rem'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = logoColors.primary}
-                  onBlur={(e) => e.target.style.borderColor = logoColors.light}
+                  onFocus={(e) => e.target.style.borderColor = C.red}
+                  onBlur={(e) => e.target.style.borderColor = C.border}
                 />
               </Form.Group>
             </Col>
           </Row>
 
           <Form.Group className="mb-3">
-            <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Country *</Form.Label>
+            <Form.Label style={{ color: C.charcoal, fontWeight: '500' }}>Country *</Form.Label>
             <Form.Select
               name="country"
               value={formData.country}
@@ -540,177 +369,79 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
               isInvalid={!!errors.country}
               style={{
                 borderRadius: '8px',
-                borderColor: logoColors.light,
+                borderColor: C.border,
                 padding: '0.6rem 1rem',
                 cursor: 'pointer'
               }}
             >
               <option value="">Select Country</option>
-              <option value="PK">Pakistan</option>
-              <option value="US">United States</option>
-              <option value="GB">United Kingdom</option>
-              <option value="IN">India</option>
-              <option value="CA">Canada</option>
-              <option value="AU">Australia</option>
-              <option value="DE">Germany</option>
-              <option value="FR">France</option>
-              <option value="CN">China</option>
-              <option value="JP">Japan</option>
-              <option value="AE">United Arab Emirates</option>
-              <option value="SA">Saudi Arabia</option>
-              <option value="TR">Turkey</option>
-              <option value="OTHER">Other</option>
+              <option value="Pakistan">Pakistan</option>
+              <option value="United States">United States</option>
+              <option value="United Kingdom">United Kingdom</option>
+              <option value="India">India</option>
+              <option value="Canada">Canada</option>
+              <option value="Australia">Australia</option>
+              <option value="Germany">Germany</option>
+              <option value="France">France</option>
+              <option value="China">China</option>
+              <option value="Japan">Japan</option>
+              <option value="UAE">United Arab Emirates</option>
+              <option value="Saudi Arabia">Saudi Arabia</option>
+              <option value="Turkey">Turkey</option>
+              <option value="Other">Other</option>
             </Form.Select>
             <Form.Control.Feedback type="invalid">{errors.country}</Form.Control.Feedback>
           </Form.Group>
         </Card.Body>
       </Card>
 
-      {/* Payment Method Card */}
-      <Card className="mb-4 border-0 shadow-sm" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+      {/* Payment Method Card - Cash on Delivery Only */}
+      <Card className="mb-4 border-0 shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden', border: `1px solid ${C.border}` }}>
         <Card.Header style={{
-          background: 'white',
-          borderBottom: `1px solid ${logoColors.light}`,
+          background: C.white,
+          borderBottom: `1px solid ${C.border}`,
           padding: '1rem 1.5rem'
         }}>
-          <h5 style={{ color: logoColors.dark, fontWeight: '600', margin: 0 }}>
+          <h5 style={{ color: C.charcoal, fontWeight: '600', margin: 0 }}>
             Payment Method
           </h5>
         </Card.Header>
         <Card.Body style={{ padding: '1.5rem' }}>
-          <Form.Group>
-            <div className="d-flex gap-4 mb-3">
-              <Form.Check
+          <div style={{
+            background: C.redLight,
+            borderRadius: '8px',
+            padding: '1rem',
+            border: `1px solid ${C.border}`
+          }}>
+            <div className="d-flex align-items-center">
+              <input
                 type="radio"
-                id="creditCard"
+                id="cash-on-delivery"
                 name="paymentMethod"
-                label={
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontWeight: '500' }}>Credit / Debit Card</span>
-                    <span style={{
-                      fontSize: '0.7rem',
-                      padding: '2px 8px',
-                      background: logoColors.softGradient,
-                      color: logoColors.primary,
-                      borderRadius: '12px'
-                    }}>
-                      Recommended
-                    </span>
-                  </span>
-                }
-                value="creditCard"
-                checked={formData.paymentMethod === 'creditCard'}
-                onChange={handleChange}
-                style={{ color: '#4A5568' }}
+                value="cash-on-delivery"
+                checked
+                readOnly
+                style={{ marginRight: '0.75rem', accentColor: C.red }}
               />
-              <Form.Check
-                type="radio"
-                id="cashOnDelivery"
-                name="paymentMethod"
-                label="Cash on Delivery"
-                value="cashOnDelivery"
-                checked={formData.paymentMethod === 'cashOnDelivery'}
-                onChange={handleChange}
-                style={{ color: '#4A5568' }}
-              />
+              <label htmlFor="cash-on-delivery" style={{ color: C.charcoal, fontWeight: 500, cursor: 'pointer' }}>
+                Cash on Delivery
+              </label>
             </div>
-          </Form.Group>
+            <small style={{ color: C.gray, marginLeft: '1.75rem', display: 'block' }}>
+              Pay with cash upon delivery
+            </small>
+          </div>
 
-          {formData.paymentMethod === 'creditCard' && (
-            <div className="mt-4">
-              {/* Card Details Section */}
-              <div style={{ marginBottom: '1rem' }}>
-                <Form.Label style={{ color: '#4A5568', fontWeight: '500', marginBottom: '0.5rem' }}>
-                  Card Details
-                </Form.Label>
-
-                {/* Card Number Row */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <div
-                    style={{
-                      border: `2px solid ${isCardFocused ? logoColors.primary : logoColors.light}`,
-                      borderRadius: '12px',
-                      padding: '0.75rem 1rem',
-                      backgroundColor: 'white',
-                      transition: 'all 0.2s ease',
-                      boxShadow: isCardFocused ? `0 0 0 4px ${logoColors.primary}20` : 'none'
-                    }}
-                  >
-                    <CardElement
-                      options={cardElementOptions}
-                      onFocus={() => setIsCardFocused(true)}
-                      onBlur={() => setIsCardFocused(false)}
-                    />
-                  </div>
-                </div>
-
-
-
-                {/* Card Icons Row */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  marginTop: '0.5rem',
-                  padding: '0.5rem 0',
-                  borderTop: `1px solid ${logoColors.light}`
-                }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <img
-                      src="https://a.storyblok.com/f/191576/120x54/5bb33c9a1d/visa-logo.png"
-                      alt="Visa"
-                      style={{ height: '24px', width: 'auto', opacity: 0.8 }}
-                      onError={(e) => e.target.style.display = 'none'}
-                    />
-                    <img
-                      src="https://a.storyblok.com/f/191576/120x54/8d6cc9a092/mastercard-logo.png"
-                      alt="Mastercard"
-                      style={{ height: '24px', width: 'auto', opacity: 0.8 }}
-                      onError={(e) => e.target.style.display = 'none'}
-                    />
-                    <img
-                      src="https://a.storyblok.com/f/191576/120x54/3c5f96e3e2/amex-logo.png"
-                      alt="American Express"
-                      style={{ height: '24px', width: 'auto', opacity: 0.8 }}
-                      onError={(e) => e.target.style.display = 'none'}
-                    />
-                  </div>
-                  <span style={{ color: '#A0AEC0', fontSize: '0.8rem', marginLeft: 'auto' }}>
-                    🔒 Secured by Stripe
-                  </span>
-                </div>
-              </div>
-
-              {/* Card Error Message */}
-              {cardError && (
-                <Alert variant="danger" style={{
-                  borderRadius: '8px',
-                  fontSize: '0.9rem',
-                  padding: '0.75rem 1rem',
-                  background: '#FEF2F2',
-                  border: '1px solid #FCA5A5',
-                  color: '#991B1B'
-                }}>
-                  <span style={{ fontWeight: '500' }}>Payment Error:</span> {cardError}
-                </Alert>
-              )}
-
-              {/* Security Note */}
-              <p style={{
-                fontSize: '0.8rem',
-                color: '#718096',
-                marginTop: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem'
-              }}>
-                <span>✓</span> Your card details are encrypted and secure
-                <span style={{ marginLeft: 'auto' }}>PCI-DSS Compliant</span>
-              </p>
-            </div>
-          )}
-
-          
+          <p style={{
+            fontSize: '0.75rem',
+            color: C.gray,
+            marginTop: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <FiShield size={14} /> Pay securely when your order arrives
+          </p>
         </Card.Body>
       </Card>
 
@@ -722,109 +453,101 @@ const CheckoutForm = ({ cart, cartTotal, clearCart, onOrderSuccess }) => {
 
       {/* Action Buttons */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <Button
-          variant="outline-secondary"
+        <button
           onClick={() => navigate('/cart')}
-          className="order-2 order-md-1 w-100 w-md-auto"
           style={{
-            borderColor: logoColors.light,
-            color: logoColors.dark,
+            border: `2px solid ${C.red}`,
+            color: C.red,
+            background: C.white,
             padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            fontWeight: '500',
-            background: 'white',
-            transition: 'all 0.2s ease'
+            borderRadius: '30px',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
           }}
           onMouseEnter={(e) => {
-            e.target.style.background = logoColors.softGradient;
-            e.target.style.borderColor = logoColors.primary;
+            e.target.style.background = C.redLight;
+            e.target.style.transform = 'translateX(-4px)';
           }}
           onMouseLeave={(e) => {
-            e.target.style.background = 'white';
-            e.target.style.borderColor = logoColors.light;
+            e.target.style.background = C.white;
+            e.target.style.transform = 'translateX(0)';
           }}
         >
-          Back to Cart
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          className="order-1 order-md-2 w-100 w-md-auto"
-          disabled={isSubmitting || processing || (formData.paymentMethod === 'creditCard' && !stripe)}
-          onClick={formData.paymentMethod === 'creditCard' ? handlePayment : handleCODSubmit}
+          <FiArrowLeft size={14} /> Back to Cart
+        </button>
+        <button
+          onClick={handleCODSubmit}
+          disabled={isSubmitting}
           style={{
-            background: 'linear-gradient(135deg, #FF4B5C 0%, #E63946 100%)',
+            background: C.gradient,
+            color: C.white,
             border: 'none',
             padding: '1rem 2.5rem',
-            borderRadius: '14px',
-            fontWeight: '700',
-            fontSize: '1.1rem',
+            borderRadius: '30px',
+            fontWeight: 700,
+            fontSize: '1rem',
             letterSpacing: '0.5px',
             textTransform: 'uppercase',
             minWidth: '220px',
-            boxShadow: '0 4px 15px rgba(230,57,70,0.3)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            opacity: isSubmitting ? 0.7 : 1,
+            transition: 'all 0.3s ease',
+            boxShadow: `0 4px 12px ${C.red}40`
           }}
           onMouseEnter={(e) => {
-            if (!isSubmitting && !processing) {
-              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 8px 25px rgba(230,57,70,0.45)';
-              e.currentTarget.style.filter = 'brightness(1.1)';
+            if (!isSubmitting) {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = `0 6px 20px ${C.red}60`;
             }
           }}
           onMouseLeave={(e) => {
-            if (!isSubmitting && !processing) {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 15px rgba(230,57,70,0.3)';
-              e.currentTarget.style.filter = 'none';
+            if (!isSubmitting) {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
             }
           }}
         >
-          {processing ? (
+          {isSubmitting ? (
             <Spinner size="sm" animation="border" variant="light" />
-          ) : isSubmitting ? (
-            'Placing Order...'
-          ) : formData.paymentMethod === 'creditCard' ? (
-            `Pay Rs. ${finalAmount.toFixed(2)}`
           ) : (
             `Place Order - Rs. ${finalAmount.toFixed(2)}`
           )}
-        </Button>
+        </button>
       </div>
     </>
   );
 };
 
-// Order Success Component - Professional styling without emojis
+// Order Success Component
 const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
-  const { customerName, email, phone, address, city, state, country, products, totalAmount, paymentMethod, isPaymentSuccess } = orderDetails;
-
-  const countryName = country === 'PK' ? 'Pakistan' :
-    country === 'US' ? 'United States' :
-      country === 'GB' ? 'United Kingdom' :
-        country;
+  const { customerName, email, phone, address, city, state, country, products, totalAmount, paymentMethod } = orderDetails;
 
   return (
-    <Container fluid className="py-5" style={{ background: logoColors.background, minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', background: C.white, padding: '2rem 0' }}>
       <Container>
         <Row className="justify-content-center">
           <Col lg={8}>
             {/* Success Message Header */}
             <Card className="border-0 shadow-sm mb-4" style={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               overflow: 'hidden',
-              border: `1px solid ${logoColors.light}`
+              border: `1px solid ${C.border}`
             }}>
               <div style={{
                 height: '4px',
-                background: isPaymentSuccess ? '#22c55e' : logoColors.gradient
+                background: C.gradient
               }} />
               <Card.Body className="text-center py-5">
                 <div style={{
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: isPaymentSuccess ? '#22c55e20' : logoColors.softGradient,
+                  background: C.redLight,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -832,43 +555,40 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
                 }}>
                   <span style={{
                     fontSize: '2rem',
-                    color: isPaymentSuccess ? '#22c55e' : logoColors.primary
+                    color: C.red
                   }}>
                     ✓
                   </span>
                 </div>
                 <h2 style={{
-                  color: isPaymentSuccess ? '#22c55e' : logoColors.dark,
+                  color: C.charcoal,
                   fontWeight: '600',
                   marginBottom: '0.5rem'
                 }}>
-                  {isPaymentSuccess ? 'Payment Successful' : 'Order Confirmed'}
+                  Order Confirmed!
                 </h2>
-                <p style={{ color: '#4A5568', fontSize: '1rem', maxWidth: '400px', margin: '0 auto' }}>
-                  Thank you, {customerName}! {isPaymentSuccess
-                    ? 'Your payment has been processed successfully.'
-                    : 'Your order has been placed successfully and will be delivered soon.'}
+                <p style={{ color: C.gray, fontSize: '1rem', maxWidth: '400px', margin: '0 auto' }}>
+                  Thank you, {customerName}! Your order has been placed successfully and will be delivered soon.
                 </p>
               </Card.Body>
             </Card>
 
             {/* Order Summary Card */}
             <Card className="border-0 shadow-sm mb-4" style={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               overflow: 'hidden',
-              border: `1px solid ${logoColors.light}`
+              border: `1px solid ${C.border}`
             }}>
               <Card.Header style={{
-                background: 'white',
-                borderBottom: `1px solid ${logoColors.light}`,
+                background: C.white,
+                borderBottom: `1px solid ${C.border}`,
                 padding: '1rem 1.5rem'
               }}>
-                <h5 style={{ color: logoColors.dark, fontWeight: '600', margin: 0 }}>
+                <h5 style={{ color: C.charcoal, fontWeight: '600', margin: 0 }}>
                   Order Summary
                 </h5>
               </Card.Header>
               <Card.Body style={{ padding: '1.5rem' }}>
-                {/* Products List */}
                 <div style={{ marginBottom: '1.5rem' }}>
                   {products.map((item, index) => (
                     <div key={index} style={{
@@ -876,43 +596,41 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       padding: '0.75rem 0',
-                      borderBottom: index < products.length - 1 ? `1px solid ${logoColors.light}` : 'none'
+                      borderBottom: index < products.length - 1 ? `1px solid ${C.border}` : 'none'
                     }}>
                       <div>
-                        <div style={{ fontWeight: '500', color: '#2D3748', marginBottom: '0.25rem' }}>
+                        <div style={{ fontWeight: '500', color: C.charcoal, marginBottom: '0.25rem' }}>
                           {item.name}
                         </div>
-                        <div style={{ color: '#718096', fontSize: '0.85rem' }}>
+                        <div style={{ color: C.gray, fontSize: '0.85rem' }}>
                           Quantity: {item.quantity} × Rs. {item.price}
-                          {(item.size || item.color || item.selectedSize || item.selectedColor) && (
-                            <div style={{ marginTop: '2px', color: logoColors.primary, fontWeight: '500' }}>
-                              {(item.size || item.selectedSize) && <span className="me-2">Size: {item.size || item.selectedSize}</span>}
-                              {(item.color || item.selectedColor) && <span>Color: {item.color || item.selectedColor}</span>}
+                          {(item.size || item.selectedSize) && (
+                            <div style={{ marginTop: '2px', color: C.red, fontWeight: '500' }}>
+                              Size: {item.size || item.selectedSize}
                             </div>
                           )}
                         </div>
                       </div>
-                      <div style={{ fontWeight: '600', color: '#2D3748' }}>
-                        Rs. {(item.quantity * item.price).toFixed(2)}
+                      <div style={{ fontWeight: '600', color: C.charcoal }}>
+                        Rs. {(item.quantity * item.price).toLocaleString()}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Total Section */}
                 <div style={{
-                  background: logoColors.softGradient,
+                  background: C.redLight,
                   borderRadius: '8px',
                   padding: '1rem'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: '600', color: logoColors.dark }}>Total Amount</span>
+                    <span style={{ fontWeight: '600', color: C.charcoal }}>Total Amount</span>
                     <span style={{
                       fontWeight: '700',
                       fontSize: '1.3rem',
-                      color: logoColors.primary
+                      color: C.red
                     }}>
-                      Rs. {totalAmount.toFixed(2)}
+                      Rs. {totalAmount.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -921,16 +639,16 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
 
             {/* Customer Information Card */}
             <Card className="border-0 shadow-sm mb-4" style={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               overflow: 'hidden',
-              border: `1px solid ${logoColors.light}`
+              border: `1px solid ${C.border}`
             }}>
               <Card.Header style={{
-                background: 'white',
-                borderBottom: `1px solid ${logoColors.light}`,
+                background: C.white,
+                borderBottom: `1px solid ${C.border}`,
                 padding: '1rem 1.5rem'
               }}>
-                <h5 style={{ color: logoColors.dark, fontWeight: '600', margin: 0 }}>
+                <h5 style={{ color: C.charcoal, fontWeight: '600', margin: 0 }}>
                   Customer Information
                 </h5>
               </Card.Header>
@@ -938,32 +656,32 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
                 <Row>
                   <Col md={6}>
                     <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.25rem' }}>
+                      <div style={{ fontSize: '0.85rem', color: C.gray, marginBottom: '0.25rem' }}>
                         Full Name
                       </div>
-                      <div style={{ fontWeight: '500', color: '#2D3748' }}>{customerName}</div>
+                      <div style={{ fontWeight: '500', color: C.charcoal }}>{customerName}</div>
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.25rem' }}>
+                      <div style={{ fontSize: '0.85rem', color: C.gray, marginBottom: '0.25rem' }}>
                         Email Address
                       </div>
-                      <div style={{ fontWeight: '500', color: '#2D3748' }}>{email}</div>
+                      <div style={{ fontWeight: '500', color: C.charcoal }}>{email}</div>
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.25rem' }}>
+                      <div style={{ fontSize: '0.85rem', color: C.gray, marginBottom: '0.25rem' }}>
                         Phone Number
                       </div>
-                      <div style={{ fontWeight: '500', color: '#2D3748' }}>{phone}</div>
+                      <div style={{ fontWeight: '500', color: C.charcoal }}>{phone}</div>
                     </div>
                   </Col>
                   <Col md={6}>
                     <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.25rem' }}>
+                      <div style={{ fontSize: '0.85rem', color: C.gray, marginBottom: '0.25rem' }}>
                         Shipping Address
                       </div>
-                      <div style={{ fontWeight: '500', color: '#2D3748' }}>
+                      <div style={{ fontWeight: '500', color: C.charcoal }}>
                         {address}<br />
-                        {city}, {state}, {countryName}
+                        {city}, {state}, {country}
                       </div>
                     </div>
                   </Col>
@@ -973,16 +691,16 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
 
             {/* Payment Information Card */}
             <Card className="border-0 shadow-sm mb-4" style={{
-              borderRadius: '16px',
+              borderRadius: '12px',
               overflow: 'hidden',
-              border: `1px solid ${logoColors.light}`
+              border: `1px solid ${C.border}`
             }}>
               <Card.Header style={{
-                background: 'white',
-                borderBottom: `1px solid ${logoColors.light}`,
+                background: C.white,
+                borderBottom: `1px solid ${C.border}`,
                 padding: '1rem 1.5rem'
               }}>
-                <h5 style={{ color: logoColors.dark, fontWeight: '600', margin: 0 }}>
+                <h5 style={{ color: C.charcoal, fontWeight: '600', margin: 0 }}>
                   Payment Information
                 </h5>
               </Card.Header>
@@ -990,17 +708,17 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
                 <Row>
                   <Col md={6}>
                     <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.25rem' }}>
+                      <div style={{ fontSize: '0.85rem', color: C.gray, marginBottom: '0.25rem' }}>
                         Payment Method
                       </div>
-                      <div style={{ fontWeight: '500', color: '#2D3748' }}>
-                        {paymentMethod === 'card' ? 'Credit / Debit Card' : 'Cash on Delivery'}
+                      <div style={{ fontWeight: '500', color: C.charcoal }}>
+                        Cash on Delivery
                       </div>
                     </div>
                   </Col>
                   <Col md={6}>
                     <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ fontSize: '0.85rem', color: '#718096', marginBottom: '0.25rem' }}>
+                      <div style={{ fontSize: '0.85rem', color: C.gray, marginBottom: '0.25rem' }}>
                         Payment Status
                       </div>
                       <div>
@@ -1010,10 +728,10 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
                           borderRadius: '20px',
                           fontSize: '0.85rem',
                           fontWeight: '500',
-                          background: isPaymentSuccess ? '#22c55e20' : '#f59e0b20',
-                          color: isPaymentSuccess ? '#22c55e' : '#f59e0b'
+                          background: '#f59e0b20',
+                          color: '#f59e0b'
                         }}>
-                          {isPaymentSuccess ? 'Paid' : 'Pending'}
+                          Pending (Pay on Delivery)
                         </span>
                       </div>
                     </div>
@@ -1024,21 +742,23 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
 
             {/* Continue Shopping Button */}
             <div className="text-center mt-4">
-              <Button
+              <button
                 onClick={onContinueShopping}
                 style={{
-                  background: logoColors.gradient,
+                  background: C.gradient,
+                  color: C.white,
                   border: 'none',
                   padding: '0.75rem 2.5rem',
-                  borderRadius: '8px',
-                  fontWeight: '500',
+                  borderRadius: '30px',
+                  fontWeight: 600,
                   fontSize: '1rem',
+                  cursor: 'pointer',
                   transition: 'all 0.3s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.opacity = '0.9';
                   e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = `0 4px 12px ${logoColors.primary}40`;
+                  e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.opacity = '1';
@@ -1047,13 +767,12 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
                 }}
               >
                 Continue Shopping
-              </Button>
+              </button>
             </div>
 
-            {/* Order Reference Note */}
             <p style={{
               textAlign: 'center',
-              color: '#718096',
+              color: C.gray,
               fontSize: '0.85rem',
               marginTop: '2rem'
             }}>
@@ -1062,44 +781,7 @@ const OrderSuccessPage = ({ orderDetails, onContinueShopping }) => {
           </Col>
         </Row>
       </Container>
-    </Container>
-  );
-};
-
-// Stripe loading wrapper component
-const StripeElementsWrapper = ({ children, cart, cartTotal, clearCart, onOrderSuccess }) => {
-  const [stripeReady, setStripeReady] = useState(false);
-  const [stripeError, setStripeError] = useState(null);
-
-  useEffect(() => {
-    stripePromise
-      .then(() => setStripeReady(true))
-      .catch(err => setStripeError(err.message));
-  }, []);
-
-  if (stripeError) {
-    return (
-      <Alert variant="danger">
-        <h4>Payment System Unavailable</h4>
-        <p>We're unable to load the payment system. Please try again later.</p>
-        <p className="text-muted">Error: {stripeError}</p>
-      </Alert>
-    );
-  }
-
-  if (!stripeReady) {
-    return (
-      <div className="text-center py-5">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3 text-muted">Loading payment system...</p>
-      </div>
-    );
-  }
-
-  return (
-    <Elements stripe={stripePromise}>
-      {React.cloneElement(children, { cart, cartTotal, clearCart, onOrderSuccess })}
-    </Elements>
+    </div>
   );
 };
 
@@ -1109,43 +791,40 @@ const CheckoutPage = () => {
   const { cart: cartFromContext, clearCart } = useCart();
   const navigate = useNavigate();
 
-  // Check for single product checkout from Order Now
   const singleProductCheckout = location.state?.products && location.state.products.length > 0;
   const cart = singleProductCheckout ? location.state.products : cartFromContext;
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
   const cartTotal = cart.reduce((sum, item) => sum + ((item.isBundle ? item.bundlePrice : (item.discountedPrice || item.price)) * (item.quantity || 1)), 0);
 
-  // Calculate discount for order summary
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountBreakdown, setDiscountBreakdown] = useState([]);
   const [couponCode, setCouponCode] = useState('');
   const [couponStatus, setCouponStatus] = useState({ type: '', message: '' });
-  // State for order success
   const [orderSuccessDetails, setOrderSuccessDetails] = useState(null);
 
   if (cartCount === 0 && !orderSuccessDetails) {
     return (
-      <Container fluid className="py-5" style={{ background: logoColors.background, minHeight: '100vh' }}>
+      <div style={{ minHeight: '100vh', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Container>
-          <Card className="border-0 shadow-sm text-center py-5" style={{ borderRadius: '16px' }}>
+          <Card className="border-0 shadow-sm text-center py-5" style={{ borderRadius: '12px', border: `1px solid ${C.border}` }}>
             <Card.Body>
               <div style={{
                 width: '80px',
                 height: '80px',
                 borderRadius: '50%',
-                background: logoColors.softGradient,
+                background: C.redLight,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 1.5rem'
               }}>
-                <FiShoppingBag size={32} style={{ color: logoColors.primary }} />
+                <FiShoppingBag size={32} style={{ color: C.red }} />
               </div>
-              <h5 style={{ color: logoColors.dark, marginBottom: '1rem' }}>Your cart is empty</h5>
+              <h5 style={{ color: C.charcoal, marginBottom: '1rem' }}>Your cart is empty</h5>
               <Link
-                to="/"
+                to="/catalog"
                 style={{
-                  color: logoColors.primary,
+                  color: C.red,
                   textDecoration: 'underline',
                   fontWeight: '500'
                 }}
@@ -1155,7 +834,7 @@ const CheckoutPage = () => {
             </Card.Body>
           </Card>
         </Container>
-      </Container>
+      </div>
     );
   }
 
@@ -1188,7 +867,6 @@ const CheckoutPage = () => {
 
   const handleOrderSuccess = (orderDetails) => {
     setOrderSuccessDetails(orderDetails);
-    // Cart is already cleared by CheckoutForm
   };
 
   const handleContinueShopping = () => {
@@ -1196,179 +874,214 @@ const CheckoutPage = () => {
     navigate('/catalog');
   };
 
-  // If order success details exist, show the success page
   if (orderSuccessDetails) {
     return <OrderSuccessPage orderDetails={orderSuccessDetails} onContinueShopping={handleContinueShopping} />;
   }
 
   return (
-    <Container fluid style={{ background: logoColors.background, minHeight: '100vh', padding: '2rem 0' }}>
-      <Container>
-        <Row>
-          <Col lg={8}>
-            <h2 className="mb-4" style={{ color: logoColors.dark }}>Checkout</h2>
-            <div style={{
-              height: '2px',
-              background: `linear-gradient(90deg, transparent, ${logoColors.primary}40, transparent)`,
-              width: '100px',
-              marginBottom: '1.5rem'
-            }} />
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+        .checkout-page {
+          min-height: 100vh;
+          background: ${C.white};
+          font-family: 'Barlow', sans-serif;
+        }
+        .form-control:focus, .form-select:focus {
+          border-color: ${C.red};
+          box-shadow: 0 0 0 0.2rem ${C.red}20;
+        }
+      `}</style>
 
-            <StripeElementsWrapper
-              cart={cart}
-              cartTotal={cartTotal}
-              clearCart={clearCart}
-              onOrderSuccess={handleOrderSuccess}
-            >
-              <CheckoutForm />
-            </StripeElementsWrapper>
-          </Col>
+      <div className="checkout-page" style={{ padding: '2rem 0' }}>
+        <Container>
+          <Row>
+            <Col lg={8}>
+              <div className="mb-4">
+                <h1 style={{ 
+                  fontFamily: 'Barlow, sans-serif', 
+                  fontSize: '1.75rem', 
+                  fontWeight: 700, 
+                  color: C.charcoal,
+                  marginBottom: '0.5rem'
+                }}>
+                  Checkout
+                </h1>
+                <div style={{
+                  height: '3px',
+                  width: '60px',
+                  background: C.red,
+                  borderRadius: '2px'
+                }} />
+              </div>
 
-          <Col lg={4}>
-            <Card className="border-0 shadow-sm" style={{
-              borderRadius: '16px',
-              overflow: 'hidden',
-              position: 'sticky',
-              top: '2rem',
-              border: `1px solid ${logoColors.light}`
-            }}>
-              <Card.Header style={{
-                background: 'white',
-                borderBottom: `1px solid ${logoColors.light}`,
-                padding: '1rem 1.5rem'
+              <CheckoutForm
+                cart={cart}
+                cartTotal={cartTotal}
+                clearCart={clearCart}
+                onOrderSuccess={handleOrderSuccess}
+              />
+            </Col>
+
+            <Col lg={4}>
+              <Card className="border-0 shadow-sm" style={{
+                borderRadius: '12px',
+                overflow: 'hidden',
+                position: 'sticky',
+                top: '2rem',
+                border: `1px solid ${C.border}`
               }}>
-                <h5 style={{ color: logoColors.dark, fontWeight: '600', margin: 0 }}>
-                  Order Summary
-                </h5>
-              </Card.Header>
-              <Card.Body style={{ padding: '1.5rem' }}>
-                <ListGroup variant="flush">
-                  {cart.map(item => {
-                    const itemBreakdown = discountBreakdown.find(b => b.productId === (item._id || item.productId) && b.type === 'BUY_X_GET_Y');
-                    const freeQty = itemBreakdown ? itemBreakdown.freeQuantity : 0;
-                    const inCartFreeQty = itemBreakdown ? itemBreakdown.inCartQuantity : 0;
-                    const paidQty = item.quantity - inCartFreeQty;
+                <Card.Header style={{
+                  background: C.white,
+                  borderBottom: `1px solid ${C.border}`,
+                  padding: '1rem 1.5rem'
+                }}>
+                  <h5 style={{ color: C.charcoal, fontWeight: '600', margin: 0 }}>
+                    Order Summary
+                  </h5>
+                </Card.Header>
+                <Card.Body style={{ padding: '1.5rem' }}>
+                  <ListGroup variant="flush">
+                    {cart.map(item => {
+                      const itemBreakdown = discountBreakdown.find(b => b.productId === (item._id || item.productId) && b.type === 'BUY_X_GET_Y');
+                      const freeQty = itemBreakdown ? itemBreakdown.freeQuantity : 0;
+                      const inCartFreeQty = itemBreakdown ? itemBreakdown.inCartQuantity : 0;
+                      const paidQty = item.quantity - inCartFreeQty;
 
-                    const displayName = item.isBundle ? `${item.name} Bundle${item.bundleProducts ? ` (${item.bundleProducts.length} products)` : ''}` : item.name;
-                    const displayPrice = item.isBundle ? item.bundlePrice : (item.discountedPrice || item.price);
+                      const displayName = item.isBundle ? `${item.name} Bundle${item.bundleProducts ? ` (${item.bundleProducts.length} products)` : ''}` : item.name;
+                      const displayPrice = item.isBundle ? item.bundlePrice : (item.discountedPrice || item.price);
 
-                    return (
-                      <React.Fragment key={item._id || item.productId}>
-                        <ListGroup.Item className="border-0 px-0 mb-2" style={{ background: 'transparent' }}>
-                          <div className="d-flex justify-content-between align-items-start">
-                            <div style={{ color: '#2D3748', fontWeight: '500' }}>
-                              {displayName}
-                              <div style={{ fontSize: '0.85rem', color: '#718096' }}>
-                                {paidQty} × Rs. {displayPrice}
-                                {!item.isBundle && (item.selectedSize || item.selectedColor || item.size || item.color) && (
-                                  <div style={{ marginTop: '2px', color: logoColors.primary, fontWeight: '500' }}>
-                                    {(item.selectedSize || item.size) && <span className="me-2">Size: {item.selectedSize || item.size}</span>}
-                                    {(item.selectedColor || item.color) && <span>Color: {item.selectedColor || item.color}</span>}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            <div style={{ color: '#2D3748', fontWeight: '600' }}>
-                              Rs. {(displayPrice * paidQty).toFixed(2)}
-                            </div>
-                          </div>
-                        </ListGroup.Item>
-                        {freeQty > 0 && (
-                          <ListGroup.Item className="border-0 px-0 mb-2 mt-n2" style={{ background: 'transparent' }}>
+                      return (
+                        <React.Fragment key={item._id || item.productId}>
+                          <ListGroup.Item className="border-0 px-0 mb-2" style={{ background: 'transparent' }}>
                             <div className="d-flex justify-content-between align-items-start">
-                              <div style={{ color: logoColors.primary, fontWeight: '500', paddingLeft: '1rem' }}>
-                                {freeQty} × {displayName} (Free)
+                              <div style={{ color: C.charcoal, fontWeight: '500' }}>
+                                {displayName}
+                                <div style={{ fontSize: '0.85rem', color: C.gray }}>
+                                  {paidQty} × Rs. {displayPrice}
+                                  {!item.isBundle && (item.selectedSize || item.selectedColor || item.size || item.color) && (
+                                    <div style={{ marginTop: '2px', color: C.red, fontWeight: '500' }}>
+                                      {(item.selectedSize || item.size) && <span className="me-2">Size: {item.selectedSize || item.size}</span>}
+                                      {(item.selectedColor || item.color) && <span>Color: {item.selectedColor || item.color}</span>}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <div style={{ color: logoColors.primary, fontWeight: '600' }}>Rs. 0.00</div>
+                              <div style={{ color: C.charcoal, fontWeight: '600' }}>
+                                Rs. {(displayPrice * paidQty).toLocaleString()}
+                              </div>
                             </div>
                           </ListGroup.Item>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
+                          {freeQty > 0 && (
+                            <ListGroup.Item className="border-0 px-0 mb-2 mt-n2" style={{ background: 'transparent' }}>
+                              <div className="d-flex justify-content-between align-items-start">
+                                <div style={{ color: C.red, fontWeight: '500', paddingLeft: '1rem' }}>
+                                  {freeQty} × {displayName} (Free)
+                                </div>
+                                <div style={{ color: C.red, fontWeight: '600' }}>Rs. 0.00</div>
+                              </div>
+                            </ListGroup.Item>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
 
-                  <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${logoColors.light}` }}>
-                    <div className="d-flex justify-content-between mb-2">
-                      <div style={{ color: '#718096' }}>Subtotal</div>
-                      <div style={{ color: '#2D3748', fontWeight: '500' }}>Rs. {cartTotal.toFixed(2)}</div>
-                    </div>
-                    {discountAmount > 0 && (
+                    <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${C.border}` }}>
                       <div className="d-flex justify-content-between mb-2">
-                        <div style={{ color: logoColors.primary }}>Total Savings</div>
-                        <div style={{ color: logoColors.primary, fontWeight: '500' }}>-Rs. {discountAmount.toFixed(2)}</div>
+                        <div style={{ color: C.gray }}>Subtotal</div>
+                        <div style={{ color: C.charcoal, fontWeight: '500' }}>Rs. {cartTotal.toLocaleString()}</div>
+                      </div>
+                      {discountAmount > 0 && (
+                        <div className="d-flex justify-content-between mb-2">
+                          <div style={{ color: C.red }}>Total Savings</div>
+                          <div style={{ color: C.red, fontWeight: '500' }}>-Rs. {discountAmount.toLocaleString()}</div>
+                        </div>
+                      )}
+                      <div className="d-flex justify-content-between mt-2 pt-2 fw-bold" style={{ borderTop: `2px solid ${C.border}` }}>
+                        <div style={{ color: C.charcoal, fontSize: '1.1rem' }}>Total Amount</div>
+                        <div style={{ color: C.red, fontSize: '1.3rem' }}>Rs. {finalAmount.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  </ListGroup>
+
+                  <div className="mt-4">
+                    <Form.Label style={{ color: C.charcoal, fontWeight: '500', marginBottom: '0.5rem' }}>
+                      Apply Coupon
+                    </Form.Label>
+                    <div className="d-flex">
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter coupon code"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        style={{
+                          borderRadius: '8px 0 0 8px',
+                          borderColor: C.red,
+                          borderRight: 'none',
+                          padding: '0.7rem 1rem',
+                          fontWeight: '500'
+                        }}
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        style={{
+                          background: C.gradient,
+                          border: 'none',
+                          borderRadius: '0 8px 8px 0',
+                          padding: '0 1rem',
+                          fontWeight: '600',
+                          fontSize: '0.85rem',
+                          color: C.white,
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.opacity = '0.9';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.opacity = '1';
+                        }}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                    {couponStatus.message && (
+                      <div
+                        className={`mt-2 text-${couponStatus.type}`}
+                        style={{
+                          fontSize: '0.9rem',
+                          color: couponStatus.type === 'success' ? C.red : '#E53E3E'
+                        }}
+                      >
+                        {couponStatus.message}
                       </div>
                     )}
-                    <div className="d-flex justify-content-between mt-2 pt-2 fw-bold" style={{ borderTop: `2px solid ${logoColors.background}` }}>
-                      <div style={{ color: '#2D3748', fontSize: '1.1rem' }}>Total Amount</div>
-                      <div style={{ color: logoColors.primary, fontSize: '1.3rem' }}>Rs. {finalAmount.toFixed(2)}</div>
-                    </div>
                   </div>
-                </ListGroup>
 
-                <div className="mt-4">
-                  <Form.Label style={{ color: '#4A5568', fontWeight: '500', marginBottom: '0.5rem' }}>
-                    Apply Coupon
-                  </Form.Label>
-                  <div className="d-flex">
-                    <Form.Control
-                      type="text"
-                      placeholder="Enter coupon code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      style={{
-                        borderRadius: '8px 0 0 8px',
-                        borderColor: logoColors.primary,
-                        borderRight: 'none',
-                        padding: '0.7rem 1rem',
-                        fontWeight: '500'
-                      }}
-                    />
-                    <Button
-                      onClick={handleApplyCoupon}
-                      style={{
-                        background: 'linear-gradient(135deg, #e8304a 0%, #c41a32 100%)',
-                        border: 'none',
-                        borderRadius: '0 8px 8px 0',
-                        padding: '0 1rem',
-                        fontWeight: '600',
-                        fontSize: '0.85rem',
-                        boxShadow: '0 3px 10px rgba(200,25,50,0.35)',
-                        letterSpacing: '0.2px',
-                        color: 'white',
-                        minWidth: '80px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #c41a32 0%, #a01025 100%)';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(180,20,40,0.45)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #e8304a 0%, #c41a32 100%)';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 3px 10px rgba(200,25,50,0.35)';
-                      }}
-                    >
-                      Apply
-                    </Button>
-                  </div>
-                  {couponStatus.message && (
-                    <div
-                      className={`mt-2 text-${couponStatus.type}`}
-                      style={{
-                        fontSize: '0.9rem',
-                        color: couponStatus.type === 'success' ? logoColors.primary : '#E53E3E'
-                      }}
-                    >
-                      {couponStatus.message}
+                  {/* Trust Badges */}
+                  <div className="mt-4 pt-3 text-center" style={{ borderTop: `1px solid ${C.border}` }}>
+                    <div className="d-flex justify-content-center gap-4">
+                      <div className="text-center">
+                        <FiLock size={18} color={C.red} />
+                        <div style={{ fontSize: '0.65rem', color: C.gray, marginTop: '0.25rem' }}>Secure Checkout</div>
+                      </div>
+                      <div className="text-center">
+                        <FiShield size={18} color={C.red} />
+                        <div style={{ fontSize: '0.65rem', color: C.gray, marginTop: '0.25rem' }}>Quality Guarantee</div>
+                      </div>
+                      <div className="text-center">
+                        <FiTruck size={18} color={C.red} />
+                        <div style={{ fontSize: '0.65rem', color: C.gray, marginTop: '0.25rem' }}>Fast Delivery</div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
-    </Container>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    </>
   );
 };
 

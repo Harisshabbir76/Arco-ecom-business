@@ -12,22 +12,24 @@ import {
   Button,
   ButtonGroup
 } from 'react-bootstrap';
-import { FaEdit, FaTrash, FaStar } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaStar, FaPlus, FaArrowLeft } from 'react-icons/fa';
+import { FiPackage, FiGrid, FiTag } from 'react-icons/fi';
 import CategoryTabs from '../components/CategoryTabs';
 import ProductEditModal from '../components/ProductEditModal';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import './heroSlider.css';
 
-// Navbar color palette
-const logoColors = {
-  primary: '#fe7e8b', // Navbar primary color
-  secondary: '#e65c70', // Navbar secondary color
-  light: '#ffd1d4', // Navbar light color
-  dark: '#d64555', // Navbar dark color
-  background: '#fff5f6', // Super light - almost white
-  lighterBg: '#fff9fa', // Even lighter - subtle tint
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)', // Navbar gradient
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)', // Very soft gradient
+const C = {
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#888888',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 export default function AdminProductsDashboard() {
@@ -170,234 +172,536 @@ export default function AdminProductsDashboard() {
     setShowEditModal(false);
   };
 
-  const renderProductCard = (product) => (
-    <Col key={product._id || product.id} xs={6} sm={6} md={4} lg={3}>
-      <Card className="product-card h-100 border-0 mb-3" style={{
-        background: 'white',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        transition: 'all 0.3s ease',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-      }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-5px)';
-          e.currentTarget.style.boxShadow = `0 8px 20px ${logoColors.primary}30`;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
-        }}>
-        <div className="product-image-container" style={{ position: 'relative' }}>
-          <Card.Img
-            variant="top"
-            src={getProductImage(product)}
-            alt={product.name}
-            className="product-img"
-            style={{
-              height: '200px',
-              objectFit: 'cover',
-              transition: 'transform 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'scale(1)';
-            }}
-            onError={(e) => {
-              e.target.src = '/placeholder.jpg';
-            }}
+  const renderProductCard = (product) => {
+    const discountPct = product.discountedPrice < product.originalPrice
+      ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
+      : null;
+    const stockQty = product.stock ?? 0;
+
+    let stockLabel = null, stockClass = '';
+    if (stockQty <= 0) { stockLabel = 'Out of Stock'; stockClass = 'out'; }
+    else if (stockQty <= 5) { stockLabel = `Only ${stockQty} left`; stockClass = 'low'; }
+
+    return (
+      <Col 
+        key={product._id || product.id} 
+        xs={6} 
+        sm={6} 
+        md={4} 
+        lg={3} 
+        className="mb-3 mb-md-4"
+        style={{ display: 'flex' }}
+      >
+        <div
+          className="admin-product-card"
+          style={{
+            background: C.white,
+            borderRadius: '12px',
+            overflow: 'hidden',
+            position: 'relative',
+            border: `1px solid ${C.border}`,
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+            height: '100%',
+            width: '100%',
+            maxWidth: '300px',
+            margin: '0 auto'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-5px)';
+            e.currentTarget.style.boxShadow = `0 14px 36px ${C.red}20`;
+            e.currentTarget.style.borderColor = 'transparent';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.borderColor = C.border;
+          }}
+        >
+          {/* Red sweep */}
+          <div style={{
+            position: 'absolute',
+            bottom: 0, left: 0,
+            width: 0, height: '3px',
+            background: C.gradient,
+            transition: 'width 0.32s ease',
+            zIndex: 5,
+            borderRadius: '0 0 2px 2px'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.width = '100%'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.width = '0'; }}
           />
-          {product.discountedPrice < product.originalPrice && (
-            <div style={{
-              position: 'absolute',
-              top: '10px',
-              left: '10px',
-              background: logoColors.gradient,
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              fontSize: '0.75rem',
-              fontWeight: 'bold',
-              zIndex: 1
-            }}>
-              {Math.round(100 - (product.discountedPrice / product.originalPrice) * 100)}% OFF
-            </div>
-          )}
-          <Badge
-            bg={product.stock > 0 ? "success" : "danger"}
+
+          {/* Image container - Standard 1:1 square */}
+          <div
             style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '1 / 1',
+              overflow: 'hidden',
+              backgroundColor: C.lightGray,
+              flexShrink: 0
+            }}
+          >
+            <img
+              src={getProductImage(product)}
+              alt={product.name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                transition: 'transform 0.45s ease'
+              }}
+              onMouseEnter={(e) => { e.target.style.transform = 'scale(1.06)'; }}
+              onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; }}
+              onError={(e) => { e.target.src = '/placeholder.jpg'; }}
+            />
+
+            {/* Discount badge */}
+            {discountPct && (
+              <span style={{
+                position: 'absolute',
+                top: '12px',
+                left: '12px',
+                fontFamily: 'Barlow, sans-serif',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                padding: '4px 12px',
+                borderRadius: '4px',
+                background: C.gradient,
+                color: C.white,
+                zIndex: 3,
+                lineHeight: 1.4
+              }}>−{discountPct}%</span>
+            )}
+
+            {/* Stock badge */}
+            <span style={{
               position: 'absolute',
-              top: '10px',
-              right: '10px',
-              padding: '4px 8px',
+              top: '12px',
+              right: '12px',
+              fontFamily: 'Barlow, sans-serif',
               fontSize: '0.7rem',
-              zIndex: 1,
-              background: product.stock > 0 ? logoColors.primary : '#dc3545',
-              border: 'none'
-            }}
-          >
-            {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-          </Badge>
-        </div>
-        <Card.Body className="d-flex flex-column" style={{ padding: '1rem' }}>
-          <Card.Title
-            className="product-title"
-            style={{
-              fontSize: '1rem',
-              fontWeight: '600',
-              color: '#2D3748',
-              marginBottom: '0.25rem'
-            }}
-          >
-            {product.name}
-          </Card.Title>
-          <Card.Text className="product-category" style={{
-            fontSize: '0.85rem',
-            marginBottom: '0.5rem',
-            color: '#718096'
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              padding: '4px 12px',
+              borderRadius: '4px',
+              background: stockQty <= 0 ? C.red : C.charcoal,
+              color: C.white,
+              zIndex: 3,
+              lineHeight: 1.4
+            }}>
+              {stockQty <= 0 ? 'Out of Stock' : 'In Stock'}
+            </span>
+          </div>
+
+          {/* Body */}
+          <div style={{
+            padding: '0.8rem 0.9rem 0.9rem',
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1
           }}>
-            {typeof product.category === 'object' ? product.category.name : (product.category || 'Uncategorized')}
-          </Card.Text>
-          <div className="mt-auto">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <div className="price">
-                {product.discountedPrice < product.originalPrice && (
-                  <span className="original-price text-muted text-decoration-line-through me-2" style={{ fontSize: '0.8rem' }}>
-                    Rs. {product.originalPrice}
-                  </span>
-                )}
-                <span className="current-price fw-bold" style={{ color: logoColors.primary, fontSize: '1.1rem' }}>
-                  Rs. {product.discountedPrice || product.price}
+            {/* Category */}
+            <span style={{
+              fontFamily: 'Barlow, sans-serif',
+              fontSize: '0.7rem',
+              fontWeight: 500,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: C.gray,
+              marginBottom: '0.3rem',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {typeof product.category === 'object' ? product.category.name : (product.category || 'Uncategorized')}
+            </span>
+
+            {/* Product Name */}
+            <p style={{
+              fontFamily: 'Barlow, sans-serif',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              letterSpacing: '0.01em',
+              color: C.charcoal,
+              lineHeight: 1.35,
+              margin: '0 0 0.5rem',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              minHeight: 'calc(0.9rem * 1.35 * 2)'
+            }}>{product.name}</p>
+
+            {/* Rating */}
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="d-flex gap-1">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <FaStar key={s} size={11}
+                    style={{ color: s <= Math.round(product.rating) ? C.red : C.border }} />
+                ))}
+              </div>
+              {product.reviewCount > 0 && (
+                <span style={{ fontSize: '0.7rem', color: C.gray }}>
+                  ({product.reviewCount})
                 </span>
-              </div>
-              <div className="rating" style={{ fontSize: '0.85rem' }}>
-                {product.reviewCount > 0 ? (
-                  <>
-                    <FaStar style={{ color: logoColors.primary }} />
-                    <span className="ms-1" style={{ color: '#4A5568' }}>{product.rating.toFixed(1)}</span>
-                    <small className="text-muted ms-1" style={{ color: '#718096' }}>({product.reviewCount})</small>
-                  </>
-                ) : (
-                  <small className="text-muted" style={{ color: '#718096' }}>No reviews yet</small>
-                )}
-              </div>
+              )}
             </div>
-            <ButtonGroup className="w-100">
-              <Button
-                variant="outline-primary"
+
+            {/* Pricing */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: '0.5rem',
+              marginBottom: '0.75rem',
+              flexWrap: 'wrap'
+            }}>
+              <span style={{
+                fontFamily: 'Barlow, sans-serif',
+                fontSize: '1rem',
+                fontWeight: 700,
+                color: C.red
+              }}>
+                Rs. {(product.discountedPrice || product.price)?.toLocaleString()}
+              </span>
+              {product.discountedPrice < product.originalPrice && (
+                <span style={{
+                  fontFamily: 'Barlow, sans-serif',
+                  fontSize: '0.75rem',
+                  color: C.gray,
+                  textDecoration: 'line-through'
+                }}>
+                  Rs. {product.originalPrice?.toLocaleString()}
+                </span>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="d-flex gap-2 mt-auto">
+              <button
                 onClick={() => handleEdit(product)}
-                size="sm"
                 style={{
-                  borderColor: logoColors.primary,
-                  color: logoColors.primary,
-                  background: 'transparent',
-                  transition: 'all 0.3s ease'
+                  flex: 1,
+                  background: C.white,
+                  color: C.red,
+                  border: `1px solid ${C.red}`,
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = logoColors.softGradient;
-                  e.target.style.color = logoColors.dark;
+                  e.target.style.background = C.redLight;
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'transparent';
-                  e.target.style.color = logoColors.primary;
+                  e.target.style.background = C.white;
                 }}
               >
-                <FaEdit /> Edit
-              </Button>
-              <Button
-                variant="outline-danger"
+                <FaEdit size={12} /> Edit
+              </button>
+              <button
                 onClick={() => handleDelete(product)}
-                size="sm"
                 style={{
-                  borderColor: '#dc3545',
+                  flex: 1,
+                  background: C.white,
                   color: '#dc3545',
-                  background: 'transparent',
-                  transition: 'all 0.3s ease'
+                  border: `1px solid #dc3545`,
+                  padding: '0.5rem',
+                  borderRadius: '6px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px'
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.background = '#dc3545';
-                  e.target.style.color = 'white';
+                  e.target.style.color = C.white;
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'transparent';
+                  e.target.style.background = C.white;
                   e.target.style.color = '#dc3545';
                 }}
               >
-                <FaTrash /> Delete
-              </Button>
-            </ButtonGroup>
+                <FaTrash size={12} /> Delete
+              </button>
+            </div>
           </div>
-        </Card.Body>
-      </Card>
-    </Col>
-  );
+        </div>
+      </Col>
+    );
+  };
 
   return (
-    <Container fluid style={{ background: logoColors.background, minHeight: '100vh', padding: '2rem 0' }}>
-      <Container className="admin-products-dashboard py-3 py-md-5">
-        <div className="page-header-wrapper mb-4 mb-md-5 text-center">
-          <h1 className="page-header" style={{ color: logoColors.dark }}>Products Management</h1>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+        
+        .admin-products-page {
+          min-height: 100vh;
+          background: ${C.white};
+          font-family: 'Barlow', sans-serif;
+        }
 
-          {/* Decorative line under header */}
-          <div style={{
-            height: '2px',
-            background: `linear-gradient(90deg, transparent, ${logoColors.primary}40, transparent)`,
-            width: '200px',
-            margin: '1rem auto 2rem auto'
-          }} />
+        /* Hero section */
+        .admin-products-hero {
+          background: ${C.white};
+          padding: 2rem 2rem 1.5rem;
+          position: relative;
+          border-bottom: 1px solid ${C.border};
+        }
+        .admin-products-hero::after {
+          content: '';
+          position: absolute;
+          left: 0; top: 0; bottom: 0;
+          width: 5px;
+          background: ${C.red};
+          border-radius: 0 2px 2px 0;
+        }
+        .admin-products-hero-inner {
+          max-width: 1320px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 1;
+        }
+        .admin-products-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          font-family: 'Barlow', sans-serif;
+          font-size: 0.68rem;
+          font-weight: 600;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: ${C.red};
+          margin-bottom: 0.6rem;
+        }
+        .admin-products-eyebrow-dot {
+          width: 5px; height: 5px;
+          background: ${C.red};
+          border-radius: 50%;
+        }
+        .admin-products-hero-title {
+          font-family: 'Barlow', sans-serif;
+          font-size: clamp(1.5rem, 4vw, 2rem);
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          color: ${C.charcoal};
+          line-height: 1.05;
+          margin: 0 0 0.25rem;
+        }
+        .admin-products-title-accent {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin: 0.5rem 0;
+        }
+        .admin-products-bar { width: 40px; height: 3px; background: ${C.red}; border-radius: 2px; flex-shrink: 0; }
+        .admin-products-bar-thin { width: 20px; height: 3px; background: ${C.border}; border-radius: 2px; flex-shrink: 0; }
 
-          <CategoryTabs
-            categories={categories}
-            activeCategory={activeCategory}
-            onCategoryChange={handleCategoryChange}
-          />
+        /* Category tabs */
+        .admin-category-tabs {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin: 1rem 0;
+        }
+        .admin-category-tab {
+          background: ${C.white};
+          border: 1px solid ${C.border};
+          border-radius: 30px;
+          padding: 0.5rem 1.25rem;
+          font-family: 'Barlow', sans-serif;
+          font-size: 0.8rem;
+          font-weight: 500;
+          color: ${C.charcoal};
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .admin-category-tab:hover {
+          border-color: ${C.red};
+          color: ${C.red};
+        }
+        .admin-category-tab.active {
+          background: ${C.red};
+          border-color: ${C.red};
+          color: ${C.white};
+        }
+
+        .row {
+          margin-left: -8px;
+          margin-right: -8px;
+        }
+        .row > [class*="col-"] {
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .admin-products-hero { padding: 1.5rem 1.25rem 1rem; }
+          .row {
+            margin-left: -6px;
+            margin-right: -6px;
+          }
+          .row > [class*="col-"] {
+            padding-left: 6px;
+            padding-right: 6px;
+          }
+          .admin-category-tab { padding: 0.35rem 1rem; font-size: 0.7rem; }
+        }
+      `}</style>
+
+      <div className="admin-products-page">
+        {/* Hero Section */}
+        <div className="admin-products-hero">
+          <div className="admin-products-hero-inner">
+            <div className="admin-products-eyebrow">
+              <span className="admin-products-eyebrow-dot" />
+              Admin Panel
+            </div>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <h1 className="admin-products-hero-title">
+                  Products Management
+                </h1>
+                <div className="admin-products-title-accent">
+                  <div className="admin-products-bar" />
+                  <div className="admin-products-bar-thin" />
+                </div>
+                <p style={{ color: C.gray, fontSize: '0.85rem', margin: 0 }}>
+                  Manage your product catalog, edit prices, and track inventory
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/dashboard/add-product')}
+                style={{
+                  background: C.gradient,
+                  color: C.white,
+                  border: 'none',
+                  padding: '0.6rem 1.25rem',
+                  borderRadius: '30px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = 'none';
+                }}
+              >
+                <FaPlus size={14} /> Add New Product
+              </button>
+            </div>
+          </div>
         </div>
 
-        {error && (
-          <Alert variant="danger" className="mb-4">
-            {error}
-          </Alert>
-        )}
-
-        {loading ? (
-          <div className="text-center my-5 py-5">
-            <Spinner animation="border" style={{ color: logoColors.primary }} />
-            <p className="mt-3" style={{ color: '#4A5568' }}>Loading products...</p>
+        {/* Category Tabs */}
+        <div style={{ maxWidth: '1320px', margin: '0 auto', padding: '1rem 2rem 0' }}>
+          <div className="admin-category-tabs">
+            <button
+              className={`admin-category-tab ${activeCategory === 'all' ? 'active' : ''}`}
+              onClick={() => handleCategoryChange('all')}
+            >
+              All Products
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat._id || cat.name}
+                className={`admin-category-tab ${activeCategory === (cat.name || cat) ? 'active' : ''}`}
+                onClick={() => handleCategoryChange(cat.name || cat)}
+              >
+                {cat.name || cat}
+              </button>
+            ))}
           </div>
-        ) : (
-          <>
-            <Row className="g-2 g-md-4">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map(product => renderProductCard(product))
-              ) : (
-                <Col className="text-center py-5">
-                  <Alert variant="info" style={{
-                    borderRadius: '8px',
-                    border: `1px solid ${logoColors.light}`
-                  }}>
-                    No products found in this category
-                  </Alert>
-                </Col>
-              )}
+        </div>
+
+        {/* Content */}
+        <div style={{ maxWidth: '1320px', margin: '0 auto', padding: '1.5rem 2rem 3rem' }}>
+          {error && (
+            <Alert variant="danger" style={{ borderLeft: `4px solid ${C.red}`, borderRadius: '6px' }}>
+              {error}
+            </Alert>
+          )}
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '5rem 0',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <Spinner animation="border"
+                style={{ color: C.red, width: '2.5rem', height: '2.5rem', borderWidth: '3px' }} />
+              <p style={{ fontFamily: 'Barlow, sans-serif', color: C.gray,
+                letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.72rem', margin: 0 }}>
+                Loading Products...
+              </p>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center my-5 py-5">
+              <div style={{
+                width: '80px', height: '80px',
+                background: C.redLight,
+                border: `1px solid ${C.border}`,
+                borderLeft: `3px solid ${C.red}`,
+                borderRadius: '8px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 1.25rem'
+              }}>
+                <FiPackage size={32} color={C.red} />
+              </div>
+              <h3 style={{
+                fontFamily: 'Barlow, sans-serif',
+                fontSize: '1.1rem', fontWeight: 700,
+                letterSpacing: '0.03em',
+                color: C.charcoal, margin: '0 0 0.5rem'
+              }}>No Products Found</h3>
+              <p style={{
+                fontFamily: 'Barlow, sans-serif',
+                fontSize: '0.875rem', color: C.gray, margin: 0
+              }}>Try selecting a different category or add a new product.</p>
+            </div>
+          ) : (
+            <Row className="g-2 g-md-3">
+              {filteredProducts.map(product => renderProductCard(product))}
             </Row>
+          )}
+        </div>
 
-            <ProductEditModal
-              show={showEditModal}
-              product={selectedProduct}
-              onClose={() => setShowEditModal(false)}
-              onSave={handleSave}
-            />
+        <ProductEditModal
+          show={showEditModal}
+          product={selectedProduct}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleSave}
+        />
 
-            <DeleteConfirmationModal
-              show={showDeleteModal}
-              onHide={() => setShowDeleteModal(false)}
-              onConfirm={confirmDelete}
-              productName={selectedProduct?.name || 'this product'}
-            />
-          </>
-        )}
-      </Container>
-    </Container>
+        <DeleteConfirmationModal
+          show={showDeleteModal}
+          onHide={() => setShowDeleteModal(false)}
+          onConfirm={confirmDelete}
+          productName={selectedProduct?.name || 'this product'}
+        />
+      </div>
+    </>
   );
 }

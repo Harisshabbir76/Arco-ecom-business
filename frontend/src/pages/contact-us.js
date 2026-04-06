@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Container, Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
-import { FaPaperPlane, FaUser, FaEnvelope, FaTag, FaComment, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { Container, Form, Button, Alert, Spinner, Row, Col, Card } from 'react-bootstrap';
+import { FaPaperPlane, FaUser, FaEnvelope, FaTag, FaComment, FaCheckCircle, FaTimesCircle, FaMapMarkerAlt, FaPhoneAlt } from 'react-icons/fa';
 import Popup from '../components/popup';
 import '../App.css';
 
-// Navbar color palette
-const logoColors = {
-  primary: '#fe7e8b', // Navbar primary color
-  secondary: '#e65c70', // Navbar secondary color
-  light: '#ffd1d4', // Navbar light color
-  dark: '#d64555', // Navbar dark color
-  background: '#fff5f6', // Super light - almost white
-  lighterBg: '#fff9fa', // Even lighter - subtle tint
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)', // Navbar gradient
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)', // Very soft gradient
+// KitchenCraft Branding Palette
+const C = {
+  red: '#CC1B1B',
+  redDark: '#A01212',
+  charcoal: '#1e1e1e',
+  white: '#ffffff',
+  lightGray: '#f7f7f7',
+  border: '#e8e8e8',
+  gray: '#888888',
+  redLight: '#fdf2f2',
+  gradient: 'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 const ContactUs = () => {
@@ -37,38 +38,24 @@ const ContactUs = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const showSuccessPopup = (message) => {
     setPopupConfig({
       show: true,
-      title: "Success!",
-      headerClass: "bg-success text-white",
+      title: "Success",
+      headerClass: "text-white border-0",
       content: (
-        <div className="popup-content text-center">
-          <FaCheckCircle style={{ color: logoColors.primary }} className="mb-3" size={48} />
-          <h5 className="mb-2" style={{ color: '#2D3748' }}>Message Sent Successfully!</h5>
-          <p className="mb-3" style={{ color: '#4A5568' }}>{message}</p>
-          <p className="small" style={{ color: '#718096' }}>
-            We'll respond to your inquiry within 24 hours.
-          </p>
+        <div className="text-center py-3">
+          <FaCheckCircle style={{ color: C.red }} size={60} className="mb-3" />
+          <h4 style={{ color: C.charcoal, fontWeight: 700 }}>Message Received!</h4>
+          <p style={{ color: C.gray }}>{message || "We will get back to you shortly."}</p>
         </div>
       ),
       footerContent: (
-        <Button
-          variant="success"
-          onClick={hidePopup}
-          className="px-4"
-          style={{
-            background: logoColors.gradient,
-            border: 'none'
-          }}
-        >
-          OK
+        <Button onClick={hidePopup} style={{ background: C.gradient, border: 'none' }} className="w-100 py-2">
+          Close
         </Button>
       )
     });
@@ -78,217 +65,216 @@ const ContactUs = () => {
     setPopupConfig({
       show: true,
       title: "Error",
-      headerClass: "bg-danger text-white",
+      headerClass: "bg-dark text-white border-0",
       content: (
-        <div className="popup-content text-center">
-          <FaTimesCircle className="text-danger mb-3" size={48} />
-          <h5 className="mb-2" style={{ color: '#2D3748' }}>Sending Failed</h5>
-          <Alert variant="light" className="mb-3" style={{ color: '#4A5568' }}>
-            {message}
-          </Alert>
-          <p style={{ color: '#718096' }}>Please check your information and try again.</p>
+        <div className="text-center py-3">
+          <FaTimesCircle className="text-danger mb-3" size={60} />
+          <h4 style={{ color: C.charcoal, fontWeight: 700 }}>Something went wrong</h4>
+          <p style={{ color: C.gray }}>{message}</p>
         </div>
       ),
-      footerContent: (
-        <div className="d-flex gap-2 justify-content-center w-100">
-          <Button
-            variant="outline-secondary"
-            onClick={hidePopup}
-            className="px-3"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleSubmit}
-            className="px-3"
-            style={{
-              background: logoColors.gradient,
-              border: 'none'
-            }}
-          >
-            Try Again
-          </Button>
-        </div>
-      )
+      footerContent: <Button variant="secondary" onClick={hidePopup} className="w-100">Try Again</Button>
     });
   };
 
-  const hidePopup = () => {
-    setPopupConfig(prev => ({ ...prev, show: false }));
-  };
+  const hidePopup = () => setPopupConfig(prev => ({ ...prev, show: false }));
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setIsSubmitting(true);
-
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/contactUs`, formData);
-      showSuccessPopup(response.data.message || "Thank you for your message!");
+      showSuccessPopup(response.data.message);
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
-      showErrorPopup(
-        error.response?.data?.error ||
-        "An unexpected error occurred. Please try again later."
-      );
+      showErrorPopup(error.response?.data?.error || "Connection error. Please try later.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Container fluid style={{ background: logoColors.background, minHeight: '100vh', padding: '2rem 0' }}>
-      <Container>
-        <div className="page-header-wrapper mb-5 text-center">
-          <h1 className="page-header" style={{ color: logoColors.dark }}>Contact Us</h1>
-          <p className="lead mt-3" style={{ color: '#4A5568' }}>We'd love to hear from you!</p>
+    <div style={{ background: C.white, minHeight: '100vh', fontFamily: "'Barlow', sans-serif" }}>
+      {/* Visual Header Section */}
+      <div style={{ 
+        background: C.lightGray, 
+        padding: '4rem 0 3rem', 
+        borderBottom: `1px solid ${C.border}`,
+        position: 'relative'
+      }}>
+        <Container className="text-center">
+          <h6 style={{ color: C.red, letterSpacing: '3px', fontWeight: 700, textTransform: 'uppercase', fontSize: '0.8rem' }}>
+            Get In Touch
+          </h6>
+          <h1 style={{ fontWeight: 800, color: C.charcoal, fontSize: '3.5rem', margin: '10px 0' }}>
+            Contact <span style={{ color: C.red }}>Us</span>
+          </h1>
+          <div style={{ width: '60px', height: '4px', background: C.red, margin: '20px auto' }} />
+          <p style={{ color: C.gray, maxWidth: '600px', margin: '0 auto', fontSize: '1.1rem' }}>
+            Have questions about our cookware or an existing order? Our culinary support team is here to help you.
+          </p>
+        </Container>
+      </div>
 
-          {/* Decorative line under header */}
-          <div style={{
-            height: '2px',
-            background: `linear-gradient(90deg, transparent, ${logoColors.primary}40, transparent)`,
-            width: '150px',
-            margin: '1.5rem auto 0 auto'
-          }} />
-        </div>
+      <Container className="py-5">
+        <Row className="g-5">
+          {/* Left Side: Contact Info Cards */}
+          <Col lg={4}>
+            <div className="d-flex flex-column gap-4">
+              <Card className="border-0 shadow-sm p-3" style={{ borderRadius: '15px' }}>
+                <Card.Body className="d-flex align-items-center gap-3">
+                  <div style={{ background: C.redLight, padding: '15px', borderRadius: '12px' }}>
+                    <FaEnvelope style={{ color: C.red }} size={24} />
+                  </div>
+                  <div>
+                    <h6 className="mb-1" style={{ fontWeight: 700, color: C.charcoal }}>Email Us</h6>
+                    <p className="mb-0 text-muted">support@kitchencraft.com</p>
+                  </div>
+                </Card.Body>
+              </Card>
 
-        <Row className="justify-content-center">
-          <Col xs={12} md={10} lg={8}>
-            <Form onSubmit={handleSubmit} className="contact-form p-4 p-md-5 shadow-sm rounded-3" style={{
-              background: 'white',
-              borderRadius: '12px'
-            }}>
-              <Form.Group controlId="name" className="mb-4 form-group">
-                <div className="input-icon">
-                  <FaUser style={{ color: logoColors.primary }} />
-                </div>
-                <Form.Control
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder=" "
-                  className="form-input py-3 ps-5"
-                  style={{
-                    borderColor: logoColors.light,
-                    borderRadius: '8px'
-                  }}
-                />
-                <label style={{ color: '#718096' }}>Your Name</label>
-              </Form.Group>
+              <Card className="border-0 shadow-sm p-3" style={{ borderRadius: '15px' }}>
+                <Card.Body className="d-flex align-items-center gap-3">
+                  <div style={{ background: C.redLight, padding: '15px', borderRadius: '12px' }}>
+                    <FaPhoneAlt style={{ color: C.red }} size={24} />
+                  </div>
+                  <div>
+                    <h6 className="mb-1" style={{ fontWeight: 700, color: C.charcoal }}>Call Us</h6>
+                    <p className="mb-0 text-muted">+92 (300) 123-4567</p>
+                  </div>
+                </Card.Body>
+              </Card>
 
-              <Form.Group controlId="email" className="mb-4 form-group">
-                <div className="input-icon">
-                  <FaEnvelope style={{ color: logoColors.primary }} />
-                </div>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Your Email"
-                  className="form-input py-3 ps-5"
-                  style={{
-                    borderColor: logoColors.light,
-                    borderRadius: '8px'
-                  }}
-                />
-              </Form.Group>
+              <Card className="border-0 shadow-sm p-3" style={{ borderRadius: '15px' }}>
+                <Card.Body className="d-flex align-items-center gap-3">
+                  <div style={{ background: C.redLight, padding: '15px', borderRadius: '12px' }}>
+                    <FaMapMarkerAlt style={{ color: C.red }} size={24} />
+                  </div>
+                  <div>
+                    <h6 className="mb-1" style={{ fontWeight: 700, color: C.charcoal }}>Visit Store</h6>
+                    <p className="mb-0 text-muted">Gulshan-e-Iqbal, Karachi, PK</p>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+          </Col>
 
-              <Form.Group controlId="subject" className="mb-4 form-group">
-                <div className="input-icon">
-                  <FaTag style={{ color: logoColors.primary }} />
-                </div>
-                <Form.Control
-                  type="text"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  placeholder="Subject"
-                  className="form-input py-3 ps-5"
-                  style={{
-                    borderColor: logoColors.light,
-                    borderRadius: '8px'
-                  }}
-                />
-              </Form.Group>
+          {/* Right Side: Main Contact Form */}
+          <Col lg={8}>
+            <Card className="border-0 shadow-lg p-2 p-md-4" style={{ borderRadius: '20px', borderTop: `5px solid ${C.red}` }}>
+              <Card.Body>
+                <Form onSubmit={handleSubmit}>
+                  <Row>
+                    <Col md={6}>
+                      <Form.Group className="mb-4">
+                        <Form.Label style={{ fontWeight: 600, color: C.charcoal }}>Full Name</Form.Label>
+                        <div className="position-relative">
+                          <FaUser className="position-absolute" style={{ left: '15px', top: '18px', color: C.gray }} />
+                          <Form.Control
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            required
+                            placeholder="John Doe"
+                            style={{ paddingLeft: '45px', height: '55px', borderRadius: '10px', backgroundColor: C.lightGray, border: 'none' }}
+                          />
+                        </div>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group className="mb-4">
+                        <Form.Label style={{ fontWeight: 600, color: C.charcoal }}>Email Address</Form.Label>
+                        <div className="position-relative">
+                          <FaEnvelope className="position-absolute" style={{ left: '15px', top: '18px', color: C.gray }} />
+                          <Form.Control
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            placeholder="john@example.com"
+                            style={{ paddingLeft: '45px', height: '55px', borderRadius: '10px', backgroundColor: C.lightGray, border: 'none' }}
+                          />
+                        </div>
+                      </Form.Group>
+                    </Col>
+                  </Row>
 
-              <Form.Group controlId="message" className="mb-4 form-group">
-                <div className="input-icon align-items-start pt-3">
-                  <FaComment style={{ color: logoColors.primary }} />
-                </div>
-                <Form.Control
-                  as="textarea"
-                  rows={5}
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  placeholder="Your Message"
-                  className="form-input py-3 ps-5"
-                  style={{
-                    borderColor: logoColors.light,
-                    borderRadius: '8px'
-                  }}
-                />
-              </Form.Group>
+                  <Form.Group className="mb-4">
+                    <Form.Label style={{ fontWeight: 600, color: C.charcoal }}>Subject</Form.Label>
+                    <div className="position-relative">
+                      <FaTag className="position-absolute" style={{ left: '15px', top: '18px', color: C.gray }} />
+                      <Form.Control
+                        type="text"
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
+                        placeholder="How can we help?"
+                        style={{ paddingLeft: '45px', height: '55px', borderRadius: '10px', backgroundColor: C.lightGray, border: 'none' }}
+                      />
+                    </div>
+                  </Form.Group>
 
-              <div className="text-center mt-4">
-                <Button
-                  variant="primary"
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="submit-btn py-3 px-5 rounded-pill fw-bold"
-                  style={{
-                    minWidth: '200px',
-                    background: logoColors.gradient,
-                    border: 'none',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.opacity = '0.9';
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = `0 4px 15px ${logoColors.primary}40`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.opacity = '1';
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Spinner as="span" animation="border" size="sm" className="me-2" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <FaPaperPlane className="me-2" />
-                      Send Message
-                    </>
-                  )}
-                </Button>
-              </div>
-            </Form>
+                  <Form.Group className="mb-4">
+                    <Form.Label style={{ fontWeight: 600, color: C.charcoal }}>Your Message</Form.Label>
+                    <div className="position-relative">
+                      <FaComment className="position-absolute" style={{ left: '15px', top: '18px', color: C.gray }} />
+                      <Form.Control
+                        as="textarea"
+                        rows={5}
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        required
+                        placeholder="Describe your inquiry in detail..."
+                        style={{ paddingLeft: '45px', borderRadius: '10px', backgroundColor: C.lightGray, border: 'none', paddingTop: '15px' }}
+                      />
+                    </div>
+                  </Form.Group>
+
+                  <div className="text-end">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      style={{
+                        background: C.gradient,
+                        border: 'none',
+                        padding: '15px 40px',
+                        borderRadius: '10px',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        transition: 'transform 0.2s'
+                      }}
+                      className="submit-btn shadow"
+                    >
+                      {isSubmitting ? (
+                        <><Spinner size="sm" className="me-2" /> Sending...</>
+                      ) : (
+                        <><FaPaperPlane className="me-2" /> Send Message</>
+                      )}
+                    </Button>
+                  </div>
+                </Form>
+              </Card.Body>
+            </Card>
           </Col>
         </Row>
-
-        <Popup
-          show={popupConfig.show}
-          onHide={hidePopup}
-          title={popupConfig.title}
-          headerClass={popupConfig.headerClass}
-          footerContent={popupConfig.footerContent}
-          bodyClass="py-4 px-3"
-          centered
-        >
-          {popupConfig.content}
-        </Popup>
       </Container>
-    </Container>
+
+      {/* Reusable Popup Component */}
+      <Popup
+        show={popupConfig.show}
+        onHide={hidePopup}
+        title={popupConfig.title}
+        headerClass={popupConfig.headerClass}
+        footerContent={popupConfig.footerContent}
+        centered
+      >
+        {popupConfig.content}
+      </Popup>
+    </div>
   );
 };
 

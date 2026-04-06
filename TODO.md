@@ -1,9 +1,29 @@
-# Task: Fix FAQs.js TypeError: e.map is not a function & FeaturedProducts HTML response
+# Online Payment Removal - TODO
 
-## Steps to complete:
+## Plan Steps (Approved)
 
-### 1. [x] Add defensive array check to FAQs.js fetch\n- Added Array.isArray check and console.log\n- Updated error handling with setFaqs([])\n- File edited successfully
+### 1. Backend Cleanup ✅ (Analysis Complete)
+- [ ] Delete `backend/routes/paymentRoutes.js`
+- [ ] Update `backend/Models/Order.js` - Remove Stripe fields
+- [ ] Update `backend/package.json` - Remove stripe dep
+- [ ] Update `backend/index.js` - Remove payment routes & webhook middleware
+- [ ] Update `backend/routes/orderRoutes.js` - Remove payment handling
+- [ ] Remove STRIPE_* from `.env`
 
-### 2. [x] Debug/Fix backend /api/featured-products\n- Added detailed error logging (err, stack)\n\n### 3. [x] Add logging to faqRoutes.js for debugging\n- Added console.log for FAQ query results
+### 2. Frontend Cleanup
+- [ ] Simplify `frontend/src/components/CheckoutPage.js` → Pure COD only
+- [ ] Update `frontend/src/components/OrderManagement.js` - Remove payment display
+- [ ] Update `frontend/src/components/ExportOrders.js` - Remove paymentMethod from export
+- [ ] Update `frontend/package.json` - Remove stripe deps if any
 
-### 4. [x] Restart backend/frontend servers\n- Commands provided: `cd backend && npm start` then `cd frontend && npm start` (Windows: use &amp;&amp; or separate)\n\n### 5. [x] Test Home page\n- Frontend FAQs.js .map error fixed with Array.isArray check\n- Backend logging added for debugging API issues\n- Check browser console/network after restart\n\n### 6. [x] attempt_completion
+### 3. Finalization & Testing
+- [ ] Backend: `npm uninstall stripe`
+- [ ] Frontend: `npm uninstall @stripe/stripe-js` (if present)
+- [ ] Test COD checkout end-to-end
+- [ ] Test dashboard orders/export
+- [ ] Restart servers
+
+**Next:** Read remaining files then execute edits step-by-step.
+
+Updated after each step.
+

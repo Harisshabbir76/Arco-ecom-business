@@ -7,16 +7,17 @@ import '../../components/heroSlider.css';
 
 import BrowseImg from '../../images/browse.jpeg';
 
-// Navbar color palette
-const logoColors = {
-  primary: '#fe7e8b',
-  secondary: '#e65c70',
-  light: '#ffd1d4',
-  dark: '#d64555',
-  background: '#fff5f6',
-  lighterBg: '#fff9fa',
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)',
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)',
+const C = {
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#000000',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 export default function Category() {
@@ -59,157 +60,335 @@ export default function Category() {
     fetchCategories();
   }, []);
 
-  // Function to get the full image URL from Cloudinary
   const getCategoryImageUrl = (category) => {
     if (!category.image) {
       return null;
     }
     
-    // If it's already a full URL (starts with http), return as is
     if (category.image.startsWith('http')) {
       return category.image;
     }
     
-    // If it's a Cloudinary path, construct the full URL
     if (category.image.includes('cloudinary')) {
       return category.image;
     }
     
-    // Otherwise, prepend the API URL (assuming it's a relative path)
     return `${process.env.REACT_APP_API_URL}${category.image.startsWith('/') ? '' : '/'}${category.image}`;
   };
 
-  // Fallback placeholder image
   const getPlaceholderImage = (categoryName) => {
-    // You can use a default placeholder image
-    return `https://via.placeholder.com/300x200?text=${encodeURIComponent(categoryName || 'Category')}`;
+    return `https://via.placeholder.com/400x400?text=${encodeURIComponent(categoryName || 'Category')}`;
   };
 
-  // Function to render category card
   const renderCategoryCard = (category, isBrowseAll = false) => (
-    <Col key={isBrowseAll ? 'browse-all' : (category._id || category.name || category)} xs={6} md={4} lg={3} className="mb-4">
-      <Card
-        className="product-card h-100 border-0"
+    <Col 
+      key={isBrowseAll ? 'browse-all' : (category._id || category.name || category)} 
+      xs={6} 
+      sm={6} 
+      md={4} 
+      lg={3} 
+      className="mb-3 mb-md-4"
+      style={{ display: 'flex' }}
+    >
+      <div
+        className="category-card"
         onClick={() =>
           isBrowseAll
             ? navigate('/category')
             : navigate(`/category/${(category.name || category).toString().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`)
         }
         style={{
-          background: 'white',
+          background: C.white,
           borderRadius: '12px',
           overflow: 'hidden',
-          transition: 'all 0.3s ease',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          position: 'relative',
+          border: `1px solid ${C.border}`,
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+          height: '100%',
+          width: '100%',
+          maxWidth: '300px',
+          margin: '0 auto'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateY(-5px)';
-          e.currentTarget.style.boxShadow = `0 8px 20px ${logoColors.primary}30`;
+          e.currentTarget.style.boxShadow = `0 14px 36px ${C.red}20`;
+          e.currentTarget.style.borderColor = 'transparent';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
+          e.currentTarget.style.boxShadow = 'none';
+          e.currentTarget.style.borderColor = C.border;
         }}
       >
-        <div className="product-image-container" style={{ position: 'relative' }}>
-          <Card.Img
-            variant="top"
+        {/* Red sweep on hover */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0, left: 0,
+          width: 0, height: '3px',
+          background: C.gradient,
+          transition: 'width 0.32s ease',
+          zIndex: 5,
+          borderRadius: '0 0 2px 2px'
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.width = '100%'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.width = '0'; }}
+        />
+
+        {/* Image container - Standard 1:1 square */}
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            aspectRatio: '1 / 1',
+            overflow: 'hidden',
+            backgroundColor: C.lightGray,
+            flexShrink: 0
+          }}
+        >
+          <img
             src={isBrowseAll ? BrowseImg : (getCategoryImageUrl(category) || getPlaceholderImage(category.name || category))}
             alt={isBrowseAll ? 'Browse All' : (category.name || category)}
-            className="product-img"
             style={{
-              height: '200px',
+              width: '100%',
+              height: '100%',
               objectFit: 'cover',
-              transition: 'transform 0.3s ease'
+              objectPosition: 'center',
+              transition: 'transform 0.45s ease'
             }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'scale(1.05)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'scale(1)';
-            }}
+            onMouseEnter={(e) => { e.target.style.transform = 'scale(1.06)'; }}
+            onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; }}
             onError={(e) => {
-              // If image fails to load, use placeholder
               e.target.src = getPlaceholderImage(category.name || category);
             }}
           />
         </div>
-        <Card.Body className="d-flex flex-column" style={{ padding: '1rem' }}>
-          <Card.Title
-            className="product-title text-capitalize"
-            style={{
-              fontSize: '1.1rem',
-              fontWeight: '600',
-              color: '#2D3748',
-              marginBottom: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
+
+        {/* Body */}
+        <div style={{
+          padding: '1rem',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          textAlign: 'center'
+        }}>
+          <h3 style={{
+            fontFamily: 'Barlow, sans-serif',
+            fontSize: '1rem',
+            fontWeight: 600,
+            letterSpacing: '0.01em',
+            color: C.charcoal,
+            margin: '0 0 0.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
             {isBrowseAll ? 'Browse All' : (category.name || category)}
             <FaChevronRight
-              className="ms-2"
               style={{
-                color: logoColors.primary,
-                fontSize: '0.9rem',
+                color: C.red,
+                fontSize: '0.85rem',
                 transition: 'transform 0.2s ease'
               }}
             />
-          </Card.Title>
+          </h3>
           {isBrowseAll && (
-            <Card.Text className="text-muted product-category" style={{
-              fontSize: '0.9rem',
-              color: '#718096',
-              textAlign: 'center'
+            <p style={{
+              fontFamily: 'Barlow, sans-serif',
+              fontSize: '0.75rem',
+              color: C.gray,
+              margin: 0
             }}>
               See all categories
-            </Card.Text>
+            </p>
           )}
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
     </Col>
   );
 
   return (
-    <Container fluid className="tshirt-products-page py-3 py-md-5" style={{
-      background: logoColors.background,
-      minHeight: '100vh'
-    }}>
-      <Container>
-        <div className="page-header-wrapper mb-4 mb-md-5 text-center">
-          <h1 className="page-header" style={{ color: logoColors.dark }}>
-            Shop by Category
-          </h1>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+        
+        .category-page {
+          min-height: 100vh;
+          background: ${C.white};
+          font-family: 'Barlow', sans-serif;
+        }
 
-          {/* Decorative line under header */}
-          <div style={{
-            height: '2px',
-            background: `linear-gradient(90deg, transparent, ${logoColors.primary}40, transparent)`,
-            width: '150px',
-            margin: '1rem auto 2rem auto'
-          }} />
+        /* Hero section matching theme */
+        .category-hero {
+          background: ${C.white};
+          padding: 3rem 2rem 2.75rem;
+          position: relative;
+          border-bottom: 1px solid ${C.border};
+        }
+        .category-hero::after {
+          content: '';
+          position: absolute;
+          left: 0; top: 0; bottom: 0;
+          width: 5px;
+          background: ${C.red};
+          border-radius: 0 2px 2px 0;
+        }
+        .category-hero-inner {
+          max-width: 1320px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 1;
+        }
+        .category-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          font-family: 'Barlow', sans-serif;
+          font-size: 0.68rem;
+          font-weight: 600;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: ${C.red};
+          margin-bottom: 0.6rem;
+        }
+        .category-eyebrow-dot {
+          width: 5px; height: 5px;
+          background: ${C.red};
+          border-radius: 50%;
+        }
+        .category-hero-title {
+          font-family: 'Barlow', sans-serif;
+          font-size: clamp(2rem, 5vw, 3.2rem);
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          color: ${C.charcoal};
+          line-height: 1.05;
+          margin: 0 0 0.5rem;
+        }
+        .category-hero-title span {
+          color: ${C.gray};
+          font-weight: 400;
+        }
+        .category-title-accent {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin: 0.85rem 0;
+        }
+        .category-bar { width: 40px; height: 3px; background: ${C.red}; border-radius: 2px; flex-shrink: 0; }
+        .category-bar-thin { width: 20px; height: 3px; background: ${C.border}; border-radius: 2px; flex-shrink: 0; }
+        .category-hero-sub {
+          font-family: 'Barlow', sans-serif;
+          font-size: 0.9rem;
+          font-weight: 400;
+          color: ${C.gray};
+          letter-spacing: 0.02em;
+          margin: 0;
+        }
+
+        /* Grid layout */
+        .category-grid-wrap {
+          max-width: 1320px;
+          margin: 0 auto;
+          padding: 2rem 2rem 4rem;
+        }
+        .row {
+          margin-left: -8px;
+          margin-right: -8px;
+        }
+        .row > [class*="col-"] {
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .category-hero { padding: 2rem 1.25rem 1.75rem; }
+          .category-hero-title { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+          .category-grid-wrap { padding: 1.5rem 1.25rem 3rem; }
+          .row {
+            margin-left: -6px;
+            margin-right: -6px;
+          }
+          .row > [class*="col-"] {
+            padding-left: 6px;
+            padding-right: 6px;
+          }
+        }
+      `}</style>
+
+      <div className="category-page">
+        {/* Hero section */}
+        <div className="category-hero">
+          <div className="category-hero-inner">
+            <div className="category-eyebrow">
+              <span className="category-eyebrow-dot" />
+              Shop Collection
+            </div>
+            <h1 className="category-hero-title">
+              Shop by <span>Category</span>
+            </h1>
+            <div className="category-title-accent">
+              <div className="category-bar" />
+              <div className="category-bar-thin" />
+            </div>
+            <p className="category-hero-sub">Browse our curated collection by category</p>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="text-center my-5 py-5">
-            <Spinner animation="border" style={{ color: logoColors.primary }} />
-            <p className="mt-3" style={{ color: '#4A5568' }}>Loading categories...</p>
-          </div>
-        ) : error ? (
-          <Alert variant="danger" className="text-center">
-            {error}
-          </Alert>
-        ) : (
-          <>
-            {/* All categories - responsive grid */}
-            <Row className="g-3 g-md-4">
+        {/* Content */}
+        <div className="category-grid-wrap">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '5rem 0',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <Spinner animation="border"
+                style={{ color: C.red, width: '2.5rem', height: '2.5rem', borderWidth: '3px' }} />
+              <p style={{ fontFamily: 'Barlow, sans-serif', color: C.gray,
+                letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.72rem', margin: 0 }}>
+                Loading Categories…
+              </p>
+            </div>
+          ) : error ? (
+            <Alert variant="danger" style={{ borderLeft: `4px solid ${C.red}`, borderRadius: '6px' }}>
+              {error}
+            </Alert>
+          ) : categories.length === 0 ? (
+            <div className="text-center my-5 py-5">
+              <div style={{
+                width: '80px', height: '80px',
+                background: C.redLight,
+                border: `1px solid ${C.border}`,
+                borderLeft: `3px solid ${C.red}`,
+                borderRadius: '8px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 1.25rem'
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={C.red} strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+              </div>
+              <h3 style={{
+                fontFamily: 'Barlow, sans-serif',
+                fontSize: '1.1rem', fontWeight: 700,
+                letterSpacing: '0.03em',
+                color: C.charcoal, margin: '0 0 0.5rem'
+              }}>No Categories Found</h3>
+              <p style={{
+                fontFamily: 'Barlow, sans-serif',
+                fontSize: '0.875rem', color: C.gray, margin: 0
+              }}>Check back soon for new categories.</p>
+            </div>
+          ) : (
+            <Row className="g-2 g-md-3">
               {categories.map(category => renderCategoryCard(category))}
             </Row>
-          </>
-        )}
-      </Container>
-    </Container>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

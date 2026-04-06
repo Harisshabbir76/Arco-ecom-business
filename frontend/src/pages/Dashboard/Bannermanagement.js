@@ -4,21 +4,21 @@ import { Spinner } from 'react-bootstrap';
 import {
   FiPlus, FiEdit2, FiTrash2, FiUpload, FiCheck, FiX,
   FiImage, FiLink, FiType, FiEye, FiEyeOff,
-  FiMove, FiSave, FiAlertCircle, FiToggleLeft, FiToggleRight
+  FiMove, FiSave, FiAlertCircle, FiToggleLeft, FiToggleRight, FiArrowLeft
 } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const C = {
-  red:      '#CC1B1B',
-  redDark:  '#A01212',
-  redLight: '#fdf2f2',
-  black:    '#111111',
-  charcoal: '#1e1e1e',
-  white:    '#ffffff',
-  offWhite: '#F5F2EE',
-  gold:     '#C8A951',
-  border:   '#E0DDD9',
-  gray:     '#888888',
-  light:    '#f5f5f5',
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#888888',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 /* ── Drag & Drop Zone ── */
@@ -40,9 +40,9 @@ function DropZone({ id, preview, hint, onFile, onClear }) {
       onClick={() => !preview && ref.current?.click()}
       style={{
         border: `2px dashed ${dragging ? C.red : C.border}`,
-        borderRadius: '4px',
-        background: dragging ? C.redLight : preview ? '#fafafa' : C.offWhite,
-        minHeight: '120px',
+        borderRadius: '12px',
+        background: dragging ? C.redLight : preview ? C.white : C.lightGray,
+        minHeight: '140px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexDirection: 'column',
         cursor: preview ? 'default' : 'pointer',
@@ -54,11 +54,11 @@ function DropZone({ id, preview, hint, onFile, onClear }) {
       {preview ? (
         <>
           <img src={preview} alt="Preview"
-            style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }} />
+            style={{ width: '100%', height: '140px', objectFit: 'cover', display: 'block', borderRadius: '10px' }} />
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'rgba(0,0,0,0.42)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
             opacity: 0, transition: 'opacity 0.2s',
           }}
             onMouseEnter={e => e.currentTarget.style.opacity = 1}
@@ -66,48 +66,41 @@ function DropZone({ id, preview, hint, onFile, onClear }) {
           >
             <button type="button" onClick={(e) => { e.stopPropagation(); ref.current?.click(); }}
               style={{
-                background: 'white', border: 'none', borderRadius: '3px',
-                padding: '5px 12px', fontSize: '0.7rem', fontWeight: 600,
-                fontFamily: "'Oswald',sans-serif", letterSpacing: '0.08em',
-                textTransform: 'uppercase', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: '5px', color: C.charcoal
+                background: C.white, border: 'none', borderRadius: '8px',
+                padding: '6px 14px', fontSize: '0.75rem', fontWeight: 600,
+                fontFamily: 'Barlow, sans-serif', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '6px', color: C.charcoal
               }}>
-              <FiUpload size={11} /> Replace
+              <FiUpload size={12} /> Replace
             </button>
             <button type="button" onClick={(e) => { e.stopPropagation(); onClear(); }}
               style={{
-                background: C.red, border: 'none', borderRadius: '3px',
-                padding: '5px 12px', fontSize: '0.7rem', fontWeight: 600,
-                fontFamily: "'Oswald',sans-serif", letterSpacing: '0.08em',
-                textTransform: 'uppercase', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: '5px', color: 'white'
+                background: C.red, border: 'none', borderRadius: '8px',
+                padding: '6px 14px', fontSize: '0.75rem', fontWeight: 600,
+                fontFamily: 'Barlow, sans-serif', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '6px', color: C.white
               }}>
-              <FiX size={11} /> Remove
+              <FiX size={12} /> Remove
             </button>
           </div>
         </>
       ) : (
         <div style={{ textAlign: 'center', padding: '1rem', pointerEvents: 'none' }}>
           <div style={{
-            width: '40px', height: '40px', borderRadius: '8px',
-            background: dragging ? 'rgba(204,27,27,0.12)' : '#ebebeb',
+            width: '48px', height: '48px', borderRadius: '12px',
+            background: dragging ? C.redLight : C.lightGray,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 0.6rem', transition: 'background 0.2s'
+            margin: '0 auto 0.5rem', transition: 'background 0.2s'
           }}>
-            {dragging ? <FiImage size={18} color={C.red} /> : <FiUpload size={18} color={C.gray} />}
+            {dragging ? <FiImage size={20} color={C.red} /> : <FiUpload size={20} color={C.gray} />}
           </div>
-          <p style={{ margin: '0 0 3px', fontFamily: "'Oswald',sans-serif", fontSize: '0.76rem',
-            fontWeight: 500, letterSpacing: '0.06em', textTransform: 'uppercase', color: C.charcoal }}>
+          <p style={{
+            margin: '0 0 4px', fontFamily: 'Barlow, sans-serif', fontSize: '0.8rem',
+            fontWeight: 500, color: C.charcoal
+          }}>
             {dragging ? 'Drop to upload' : 'Drag & drop or click'}
           </p>
-          <p style={{ margin: 0, fontFamily: "'Barlow',sans-serif", fontSize: '0.7rem', color: C.gray }}>{hint}</p>
-          <span style={{
-            display: 'inline-block', marginTop: '8px',
-            background: 'rgba(204,27,27,0.1)', color: C.red,
-            fontFamily: "'Oswald',sans-serif", fontSize: '0.62rem', fontWeight: 600,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-            padding: '3px 10px', borderRadius: '100px'
-          }}>Browse Files</span>
+          <p style={{ margin: 0, fontSize: '0.7rem', color: C.gray }}>{hint}</p>
         </div>
       )}
       <input ref={ref} id={id} type="file" accept="image/*" style={{ display: 'none' }}
@@ -116,161 +109,150 @@ function DropZone({ id, preview, hint, onFile, onClear }) {
   );
 }
 
-/* ── Field wrapper ── */
+/* ─── Field wrapper ─── */
 function Field({ label, icon, hint, children }) {
   return (
     <div style={{ marginBottom: '1rem' }}>
       <label style={{
-        display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px',
-        fontFamily: "'Oswald',sans-serif", fontSize: '0.68rem', fontWeight: 600,
-        letterSpacing: '0.12em', textTransform: 'uppercase', color: C.charcoal
+        display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px',
+        fontFamily: 'Barlow, sans-serif', fontSize: '0.7rem', fontWeight: 600,
+        letterSpacing: '0.1em', textTransform: 'uppercase', color: C.charcoal
       }}>
         {icon && React.cloneElement(icon, { size: 12, color: C.red })}
         {label}
       </label>
       {children}
-      {hint && <p style={{ margin: '4px 0 0', fontFamily: "'Barlow',sans-serif",
-        fontSize: '0.68rem', color: C.gray }}>{hint}</p>}
+      {hint && <p style={{ margin: '4px 0 0', fontSize: '0.68rem', color: C.gray }}>{hint}</p>}
     </div>
   );
 }
 
 const inp = {
-  width: '100%', border: `1.5px solid ${C.border}`, borderRadius: '3px',
-  padding: '8px 11px', fontFamily: "'Barlow',sans-serif", fontSize: '0.875rem',
-  color: C.black, background: C.white, outline: 'none',
+  width: '100%', border: `1.5px solid ${C.border}`, borderRadius: '8px',
+  padding: '8px 12px', fontFamily: 'Barlow, sans-serif', fontSize: '0.875rem',
+  color: C.charcoal, background: C.white, outline: 'none',
   transition: 'border-color 0.18s', boxSizing: 'border-box',
 };
 
-/* ── Banner list card ── */
+/* ─── Banner list card ── */
 function BannerCard({ banner, onEdit, onDelete, onToggle }) {
   const img = banner.desktopImage || banner.image || banner.mobileImage;
   const [hovered, setHovered] = useState(false);
   return (
     <div style={{
-      background: C.white, border: `1px solid ${C.border}`, borderRadius: '4px',
+      background: C.white, border: `1px solid ${C.border}`, borderRadius: '12px',
       overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative',
-      transition: 'box-shadow 0.22s, transform 0.22s',
-      boxShadow: hovered ? '0 10px 32px rgba(0,0,0,0.11)' : 'none',
-      transform: hovered ? 'translateY(-3px)' : 'none',
+      transition: 'box-shadow 0.25s, transform 0.25s',
+      boxShadow: hovered ? `0 12px 28px ${C.red}20` : 'none',
+      transform: hovered ? 'translateY(-4px)' : 'none',
     }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* Active stripe */}
       <div style={{
-        position: 'absolute', top: 0, left: 0, bottom: 0, width: '3px',
-        background: banner.isActive ? C.red : C.border, transition: 'background 0.2s'
+        position: 'absolute', top: 0, left: 0, bottom: 0, width: '4px',
+        background: banner.isActive ? C.red : C.border, transition: 'background 0.2s',
+        borderRadius: '12px 0 0 12px'
       }} />
 
       {/* Thumbnail */}
-      <div style={{ position: 'relative', paddingTop: '38%', background: '#f0ece8', marginLeft: '3px' }}>
+      <div style={{ position: 'relative', paddingTop: '45%', background: C.lightGray, marginLeft: '4px' }}>
         {img
           ? <img src={img} alt={banner.title || 'Banner'}
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
               justifyContent: 'center' }}>
-              <FiImage size={24} color={C.gray} />
+              <FiImage size={28} color={C.gray} />
             </div>
         }
         <span style={{
-          position: 'absolute', top: 8, right: 8,
-          background: banner.isActive ? C.red : 'rgba(17,17,17,0.65)',
-          color: 'white', borderRadius: '2px',
-          fontFamily: "'Oswald',sans-serif", fontSize: '0.56rem', fontWeight: 600,
-          letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 7px',
-          display: 'flex', alignItems: 'center', gap: '3px'
+          position: 'absolute', top: 10, right: 10,
+          background: banner.isActive ? C.red : C.gray,
+          color: C.white, borderRadius: '6px',
+          fontSize: '0.6rem', fontWeight: 600,
+          letterSpacing: '0.08em', textTransform: 'uppercase', padding: '3px 8px',
+          display: 'flex', alignItems: 'center', gap: '4px'
         }}>
-          {banner.isActive ? <FiEye size={9} /> : <FiEyeOff size={9} />}
-          {banner.isActive ? 'Live' : 'Hidden'}
+          {banner.isActive ? <FiEye size={10} /> : <FiEyeOff size={10} />}
+          {banner.isActive ? 'Active' : 'Hidden'}
         </span>
-        {banner.position && (
-          <span style={{
-            position: 'absolute', bottom: 8, left: 8,
-            background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.85)',
-            borderRadius: '2px', fontFamily: "'Barlow',sans-serif",
-            fontSize: '0.6rem', padding: '2px 7px', letterSpacing: '0.04em'
-          }}>
-            {banner.position}
-          </span>
-        )}
       </div>
 
       {/* Info */}
-      <div style={{ padding: '0.75rem 1rem 0.75rem 1.25rem', flex: 1 }}>
+      <div style={{ padding: '0.75rem 1rem', flex: 1 }}>
         <p style={{
-          margin: '0 0 2px', fontFamily: "'Oswald',sans-serif", fontSize: '0.875rem',
-          fontWeight: 600, letterSpacing: '0.02em', color: C.black,
+          margin: '0 0 2px', fontSize: '0.9rem', fontWeight: 600, color: C.charcoal,
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
         }}>{banner.title || 'Untitled'}</p>
         {banner.subtitle && (
-          <p style={{ margin: '0 0 5px', fontFamily: "'Barlow',sans-serif", fontSize: '0.76rem',
-            color: C.gray, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <p style={{ margin: '0 0 5px', fontSize: '0.75rem', color: C.gray,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {banner.subtitle}
           </p>
         )}
         {banner.ctaLink && (
-          <p style={{ margin: 0, fontFamily: "'Barlow',sans-serif", fontSize: '0.68rem',
-            color: C.red, display: 'flex', alignItems: 'center', gap: '3px' }}>
-            <FiLink size={9} /> {banner.ctaLink}
+          <p style={{ margin: 0, fontSize: '0.7rem', color: C.red, display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <FiLink size={10} /> {banner.ctaLink}
           </p>
         )}
       </div>
 
       {/* Actions row */}
-      <div style={{ display: 'flex', borderTop: `1px solid ${C.border}`, marginLeft: '3px' }}>
-        {[
-          {
-            label: banner.isActive ? 'Deactivate' : 'Activate',
-            icon: banner.isActive ? <FiToggleRight size={12} /> : <FiToggleLeft size={12} />,
-            color: banner.isActive ? C.gray : C.red,
-            hoverBg: C.light,
-            onClick: () => onToggle(banner._id, !banner.isActive),
-          },
-          {
-            label: 'Edit',
-            icon: <FiEdit2 size={12} />,
-            color: C.charcoal,
-            hoverBg: C.light,
-            onClick: () => onEdit(banner),
-          },
-          {
-            label: 'Delete',
-            icon: <FiTrash2 size={12} />,
-            color: C.red,
-            hoverBg: C.redLight,
-            onClick: () => onDelete(banner._id),
-          },
-        ].map((btn, i, arr) => (
-          <ActionBtn key={btn.label} {...btn} hasBorder={i < arr.length - 1} />
-        ))}
+      <div style={{ display: 'flex', borderTop: `1px solid ${C.border}` }}>
+        <button
+          onClick={() => onToggle(banner._id, !banner.isActive)}
+          style={{
+            flex: 1, background: 'none', border: 'none',
+            borderRight: `1px solid ${C.border}`,
+            padding: '8px 4px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            fontSize: '0.7rem', fontWeight: 500, color: banner.isActive ? C.gray : C.red,
+            transition: 'background 0.14s'
+          }}
+          onMouseEnter={(e) => e.target.style.background = C.lightGray}
+          onMouseLeave={(e) => e.target.style.background = 'none'}
+        >
+          {banner.isActive ? <FiToggleRight size={14} /> : <FiToggleLeft size={14} />}
+          {banner.isActive ? 'Deactivate' : 'Activate'}
+        </button>
+        <button
+          onClick={() => onEdit(banner)}
+          style={{
+            flex: 1, background: 'none', border: 'none',
+            borderRight: `1px solid ${C.border}`,
+            padding: '8px 4px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            fontSize: '0.7rem', fontWeight: 500, color: C.charcoal,
+            transition: 'background 0.14s'
+          }}
+          onMouseEnter={(e) => e.target.style.background = C.lightGray}
+          onMouseLeave={(e) => e.target.style.background = 'none'}
+        >
+          <FiEdit2 size={12} /> Edit
+        </button>
+        <button
+          onClick={() => onDelete(banner._id)}
+          style={{
+            flex: 1, background: 'none', border: 'none',
+            padding: '8px 4px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+            fontSize: '0.7rem', fontWeight: 500, color: C.red,
+            transition: 'background 0.14s'
+          }}
+          onMouseEnter={(e) => e.target.style.background = C.redLight}
+          onMouseLeave={(e) => e.target.style.background = 'none'}
+        >
+          <FiTrash2 size={12} /> Delete
+        </button>
       </div>
     </div>
   );
 }
 
-function ActionBtn({ label, icon, color, hoverBg, onClick, hasBorder }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <button onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        flex: 1, background: hov ? hoverBg : 'none', border: 'none',
-        borderRight: hasBorder ? `1px solid ${C.border}` : 'none',
-        padding: '7px 4px', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-        fontFamily: "'Oswald',sans-serif", fontSize: '0.6rem', fontWeight: 500,
-        letterSpacing: '0.08em', textTransform: 'uppercase', color,
-        transition: 'background 0.14s',
-      }}>
-      {icon} {label}
-    </button>
-  );
-}
-
-/* ── Main ── */
+/* ─── Main ── */
 export default function BannerManagement() {
+  const navigate = useNavigate();
   const [banners, setBanners]       = useState([]);
   const [loading, setLoading]       = useState(true);
   const [showForm, setShowForm]     = useState(false);
@@ -371,311 +353,395 @@ export default function BannerManagement() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Cormorant+Garamond:ital@1&family=Barlow:wght@300;400;500&display=swap');
-        * { box-sizing: border-box; }
-
-        .bm-page { min-height: 100vh; background: ${C.offWhite}; font-family: 'Barlow', sans-serif; }
-
-        /* Top bar */
-        .bm-topbar {
-          background: ${C.black}; padding: 0 2rem; height: 56px;
-          display: flex; align-items: center; justify-content: space-between;
-          border-bottom: 3px solid ${C.red}; position: sticky; top: 0; z-index: 100;
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+        
+        .bm-page {
+          min-height: 100vh;
+          background: ${C.white};
+          font-family: 'Barlow', sans-serif;
         }
-        .bm-topbar-title {
-          font-family: 'Oswald', sans-serif; font-size: 1.05rem; font-weight: 600;
-          letter-spacing: 0.08em; text-transform: uppercase; color: ${C.white}; margin: 0;
+
+        .bm-inp:focus {
+          border-color: ${C.red} !important;
+          outline: none;
+          box-shadow: 0 0 0 3px ${C.red}20;
         }
-        .bm-topbar-title em {
-          font-style: italic; font-family: 'Cormorant Garamond', serif;
-          font-weight: 400; color: ${C.gold}; font-size: 1.05em; text-transform: none; letter-spacing: 0;
-        }
-        .bm-topbar-left { display: flex; align-items: center; gap: 12px; }
-        .bm-topbar-stripe { width: 4px; height: 28px; background: ${C.red}; flex-shrink: 0; }
-        .bm-topbar-count { font-family: 'Barlow',sans-serif; font-size: 0.7rem; color: rgba(255,255,255,0.4); }
 
-        .bm-add-btn {
-          display: inline-flex; align-items: center; gap: 6px;
-          background: ${C.red}; color: white; font-family: 'Oswald',sans-serif;
-          font-size: 0.7rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
-          border: none; padding: 8px 16px; border-radius: 2px; cursor: pointer;
-          transition: background 0.18s, transform 0.15s;
-        }
-        .bm-add-btn:hover { background: ${C.redDark}; transform: translateY(-1px); }
-
-        /* Body grid */
-        .bm-body { display: grid; grid-template-columns: 1fr 400px; min-height: calc(100vh - 56px); }
-
-        /* Left */
-        .bm-left { padding: 1.75rem 2rem; overflow-y: auto; }
-
-        .bm-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.75rem; }
-        .bm-stat {
-          background: ${C.white}; border: 1px solid ${C.border}; border-radius: 4px;
-          padding: 1rem 1.25rem; border-left: 3px solid ${C.red};
-        }
-        .bm-stat-num { font-family:'Oswald',sans-serif; font-size:1.7rem; font-weight:700; color:${C.red}; line-height:1; margin-bottom:3px; }
-        .bm-stat-label { font-family:'Barlow',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:${C.gray}; }
-
-        .bm-sec-label { display:flex; align-items:center; gap:8px; margin-bottom:1.1rem; }
-        .bm-sec-bar { width:22px; height:2px; background:${C.red}; }
-        .bm-sec-label span { font-family:'Oswald',sans-serif; font-size:0.68rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:${C.gray}; }
-
-        .bm-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
-
-        .bm-empty {
-          grid-column:1/-1; text-align:center; padding:4rem 2rem;
-          background:${C.white}; border:2px dashed ${C.border}; border-radius:4px;
-        }
-        .bm-empty-ico { width:56px;height:56px;background:${C.light};border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem; }
-        .bm-empty h3 { font-family:'Oswald',sans-serif;font-size:0.9rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:${C.charcoal};margin:0 0 .35rem; }
-        .bm-empty p { font-family:'Barlow',sans-serif;font-size:0.82rem;color:${C.gray};margin:0; }
-
-        /* Right form panel */
-        .bm-right {
-          background: ${C.white}; border-left: 2px solid ${C.black};
-          display: flex; flex-direction: column;
-          position: sticky; top: 56px; height: calc(100vh - 56px); overflow: hidden;
-        }
-        .bm-form-head {
-          background: ${C.black}; padding: 1.1rem 1.5rem;
-          border-bottom: 2px solid ${C.red};
-          display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-        }
-        .bm-form-head-title { font-family:'Oswald',sans-serif;font-size:0.82rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:white;margin:0; }
-        .bm-form-close {
-          background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);
-          color:white;width:28px;height:28px;border-radius:3px;
-          display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;
-        }
-        .bm-form-close:hover { background:${C.red}; border-color:${C.red}; }
-
-        .bm-form-scroll { flex:1;overflow-y:auto;padding:1.25rem; }
-        .bm-form-scroll::-webkit-scrollbar{width:3px;}
-        .bm-form-scroll::-webkit-scrollbar-track{background:${C.offWhite};}
-        .bm-form-scroll::-webkit-scrollbar-thumb{background:${C.border};border-radius:2px;}
-
-        .bm-divider { height:1px;background:${C.border};margin:1.1rem 0; }
-
-        .bm-form-footer {
-          padding:.875rem 1.25rem;border-top:1px solid ${C.border};
-          background:${C.offWhite};display:flex;gap:.625rem;flex-shrink:0;
-        }
-        .bm-save { flex:1;background:${C.red};color:white;font-family:'Oswald',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;border:none;padding:10px;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .18s; }
-        .bm-save:hover:not(:disabled){background:${C.redDark};}
-        .bm-save:disabled{background:#ccc;cursor:not-allowed;}
-        .bm-cancel{background:none;border:1.5px solid ${C.border};color:${C.charcoal};font-family:'Oswald',sans-serif;font-size:0.72rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:10px 16px;border-radius:2px;cursor:pointer;transition:border-color .15s,background .15s;}
-        .bm-cancel:hover{border-color:${C.black};background:${C.light};}
-
-        /* Toggle */
-        .bm-toggle { display:flex;align-items:center;gap:10px;padding:10px 12px;background:${C.offWhite};border:1px solid ${C.border};border-radius:3px;cursor:pointer;user-select:none; }
-        .bm-track { width:36px;height:19px;border-radius:100px;position:relative;flex-shrink:0;transition:background .2s; }
-        .bm-thumb { position:absolute;top:2px;width:15px;height:15px;background:white;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2); }
-        .bm-toggle-lbl { font-family:'Oswald',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:${C.charcoal}; }
-
-        /* Placeholder */
-        .bm-ph { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center; }
-        .bm-ph-ico { width:64px;height:64px;background:${C.offWhite};border:1px solid ${C.border};border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:1.1rem; }
-        .bm-ph h3 { font-family:'Oswald',sans-serif;font-size:0.88rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:${C.charcoal};margin:0 0 .4rem; }
-        .bm-ph p { font-family:'Barlow',sans-serif;font-size:0.8rem;color:${C.gray};margin:0 0 1.25rem;line-height:1.5; }
-        .bm-ph-btn { display:inline-flex;align-items:center;gap:6px;background:${C.red};color:white;font-family:'Oswald',sans-serif;font-size:0.7rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;border:none;padding:9px 18px;border-radius:2px;cursor:pointer;transition:background .18s; }
-        .bm-ph-btn:hover { background:${C.redDark}; }
-
-        /* Error inline */
-        .bm-err { background:${C.redLight};border:1px solid ${C.red};border-left:3px solid ${C.red};border-radius:3px;padding:9px 11px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:7px;font-family:'Barlow',sans-serif;font-size:0.8rem;color:${C.red}; }
-
-        /* Input focus */
-        .bm-inp:focus { border-color:${C.red} !important; outline:none; }
-
-        /* Toast */
         .bm-toast {
-          position:fixed;bottom:1.5rem;right:1.5rem;padding:9px 14px;border-radius:4px;
-          font-family:'Oswald',sans-serif;font-size:0.72rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
-          display:flex;align-items:center;gap:7px;z-index:9999;
-          box-shadow:0 8px 24px rgba(0,0,0,0.16);
-          animation:toastIn .22s ease;
+          position: fixed;
+          bottom: 1.5rem;
+          right: 1.5rem;
+          padding: 0.75rem 1.25rem;
+          border-radius: 8px;
+          font-weight: 500;
+          font-size: 0.8rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          z-index: 9999;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+          animation: toastIn 0.22s ease;
         }
-        .bm-toast.success { background:${C.black};color:white;border-left:3px solid #2e7d32; }
-        .bm-toast.error   { background:${C.black};color:white;border-left:3px solid ${C.red}; }
-        @keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-        /* Responsive */
-        @media(max-width:900px){
-          .bm-body{grid-template-columns:1fr;}
-          .bm-right{position:fixed;right:0;top:56px;bottom:0;width:min(100%,400px);z-index:200;box-shadow:-8px 0 40px rgba(0,0,0,.15);}
-        }
-        @media(max-width:600px){
-          .bm-left{padding:1.25rem;}
-          .bm-grid{grid-template-columns:1fr;}
-          .bm-stats{grid-template-columns:1fr 1fr;}
+        .bm-toast.success { background: ${C.charcoal}; color: ${C.white}; border-left: 4px solid #10B981; }
+        .bm-toast.error { background: ${C.charcoal}; color: ${C.white}; border-left: 4px solid ${C.red}; }
+        
+        @keyframes toastIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
 
-      <div className="bm-page">
-
-        {/* ── Top bar ── */}
-        <div className="bm-topbar">
-          <div className="bm-topbar-left">
-            <div className="bm-topbar-stripe" />
-            <h1 className="bm-topbar-title">Banner <em>Management</em></h1>
-            <span className="bm-topbar-count">{banners.length} banner{banners.length !== 1 ? 's' : ''}</span>
-          </div>
-          <button className="bm-add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
-            <FiPlus size={13} /> New Banner
+      <div className="bm-page" style={{ padding: '2rem 0' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1rem' }}>
+          {/* Back Button */}
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: C.red,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '1.5rem',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              fontWeight: 500
+            }}
+            onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+            onMouseLeave={(e) => e.target.style.opacity = '1'}
+          >
+            <FiArrowLeft size={16} /> Back to Dashboard
           </button>
-        </div>
 
-        {/* ── Body ── */}
-        <div className="bm-body">
-
-          {/* Left */}
-          <div className="bm-left">
-
-            {/* Stats */}
-            <div className="bm-stats">
-              <div className="bm-stat">
-                <div className="bm-stat-num">{banners.length}</div>
-                <div className="bm-stat-label">Total</div>
+          {/* Header */}
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '7px',
+                fontSize: '0.68rem',
+                fontWeight: 600,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: C.red,
+                marginBottom: '0.5rem'
+              }}>
+                <span style={{ width: '5px', height: '5px', background: C.red, borderRadius: '50%' }} />
+                Management
               </div>
-              <div className="bm-stat">
-                <div className="bm-stat-num">{banners.filter(b => b.isActive).length}</div>
-                <div className="bm-stat-label">Active</div>
-              </div>
-              <div className="bm-stat">
-                <div className="bm-stat-num">{banners.filter(b => !b.isActive).length}</div>
-                <div className="bm-stat-label">Hidden</div>
-              </div>
+              <h1 style={{
+                margin: 0,
+                fontWeight: 700,
+                fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+                color: C.charcoal,
+                lineHeight: 1.2
+              }}>
+                Banner Management
+              </h1>
+              <div style={{
+                height: '3px',
+                width: '60px',
+                background: C.red,
+                borderRadius: '2px',
+                marginTop: '0.5rem'
+              }} />
+              <p style={{ color: C.gray, fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                Manage promotional banners across your website
+              </p>
             </div>
-
-            <div className="bm-sec-label">
-              <div className="bm-sec-bar" />
-              <span>All Banners</span>
-            </div>
-
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '3rem 0' }}>
-                <Spinner animation="border" style={{ color: C.red, width: '2rem', height: '2rem', borderWidth: '2px' }} />
-              </div>
-            ) : (
-              <div className="bm-grid">
-                {banners.length === 0 ? (
-                  <div className="bm-empty">
-                    <div className="bm-empty-ico"><FiImage size={26} color={C.gray} /></div>
-                    <h3>No Banners Yet</h3>
-                    <p>Click "New Banner" to create your first promotional banner.</p>
-                  </div>
-                ) : banners.map(b => (
-                  <BannerCard key={b._id} banner={b}
-                    onEdit={openEdit} onDelete={handleDelete} onToggle={handleToggle} />
-                ))}
-              </div>
-            )}
+            <button
+              onClick={() => { resetForm(); setShowForm(true); }}
+              style={{
+                background: C.gradient,
+                border: 'none',
+                borderRadius: '30px',
+                padding: '0.6rem 1.25rem',
+                color: C.white,
+                fontWeight: 600,
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              <FiPlus size={16} /> New Banner
+            </button>
           </div>
 
-          {/* Right */}
-          <div className="bm-right">
-            {showForm ? (
-              <>
-                <div className="bm-form-head">
-                  <h2 className="bm-form-head-title">
-                    {editingId ? '✎ Edit Banner' : '+ New Banner'}
-                  </h2>
-                  <button className="bm-form-close" onClick={() => { setShowForm(false); resetForm(); }}>
-                    <FiX size={15} />
+          {/* Stats Row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '1rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{
+              background: C.redLight,
+              borderRadius: '12px',
+              padding: '1rem',
+              border: `1px solid ${C.border}`
+            }}>
+              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: C.red }}>{banners.length}</div>
+              <div style={{ fontSize: '0.7rem', color: C.gray, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Banners</div>
+            </div>
+            <div style={{
+              background: C.white,
+              borderRadius: '12px',
+              padding: '1rem',
+              border: `1px solid ${C.border}`
+            }}>
+              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#10B981' }}>{banners.filter(b => b.isActive).length}</div>
+              <div style={{ fontSize: '0.7rem', color: C.gray, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active</div>
+            </div>
+            <div style={{
+              background: C.white,
+              borderRadius: '12px',
+              padding: '1rem',
+              border: `1px solid ${C.border}`
+            }}>
+              <div style={{ fontSize: '1.75rem', fontWeight: 700, color: C.gray }}>{banners.filter(b => !b.isActive).length}</div>
+              <div style={{ fontSize: '0.7rem', color: C.gray, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hidden</div>
+            </div>
+          </div>
+
+          {/* Main Content - Two Column Layout */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: showForm ? '1fr 450px' : '1fr',
+            gap: '1.5rem',
+            transition: 'all 0.3s ease'
+          }}>
+            {/* Left Column - Banner List */}
+            <div>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+                  <Spinner animation="border" style={{ color: C.red, width: '2.5rem', height: '2.5rem', borderWidth: '3px' }} />
+                </div>
+              ) : banners.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '4rem',
+                  background: C.white,
+                  borderRadius: '12px',
+                  border: `2px dashed ${C.border}`
+                }}>
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    background: C.redLight,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1rem'
+                  }}>
+                    <FiImage size={32} color={C.red} />
+                  </div>
+                  <h3 style={{ color: C.charcoal, marginBottom: '0.5rem' }}>No Banners Yet</h3>
+                  <p style={{ color: C.gray, marginBottom: '1rem' }}>Click "New Banner" to create your first promotional banner.</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gap: '1rem'
+                }}>
+                  {banners.map(b => (
+                    <BannerCard key={b._id} banner={b}
+                      onEdit={openEdit} onDelete={handleDelete} onToggle={handleToggle} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right Column - Form Panel */}
+            {showForm && (
+              <div style={{
+                background: C.white,
+                borderRadius: '12px',
+                border: `1px solid ${C.border}`,
+                position: 'sticky',
+                top: '2rem',
+                height: 'fit-content',
+                maxHeight: 'calc(100vh - 2rem)',
+                overflow: 'auto'
+              }}>
+                <div style={{
+                  padding: '1rem 1.25rem',
+                  borderBottom: `1px solid ${C.border}`,
+                  background: C.redLight,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: C.charcoal }}>
+                    {editingId ? 'Edit Banner' : 'Create New Banner'}
+                  </h3>
+                  <button
+                    onClick={() => { setShowForm(false); resetForm(); }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: C.gray
+                    }}
+                  >
+                    <FiX size={20} />
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-                  <div className="bm-form-scroll">
-                    {formError && (
-                      <div className="bm-err">
-                        <FiAlertCircle size={14} style={{ marginTop: '1px', flexShrink: 0 }} />
-                        {formError}
-                      </div>
-                    )}
-
-                    <Field label="Desktop Image" icon={<FiImage />} hint="1920 × 500 px recommended">
-                      <DropZone id="bm-desk" preview={deskPrev} hint="PNG · JPG · WebP up to 10MB"
-                        onFile={(f) => { set('desktopImage', f); setDeskPrev(URL.createObjectURL(f)); }}
-                        onClear={() => { set('desktopImage', null); setDeskPrev(null); }} />
-                    </Field>
-
-                    <Field label="Mobile Image" icon={<FiImage />} hint="768 × 400 px recommended">
-                      <DropZone id="bm-mob" preview={mobPrev} hint="PNG · JPG · WebP up to 5MB"
-                        onFile={(f) => { set('mobileImage', f); setMobPrev(URL.createObjectURL(f)); }}
-                        onClear={() => { set('mobileImage', null); setMobPrev(null); }} />
-                    </Field>
-
-                    <div className="bm-divider" />
-
-                    <Field label="Title" icon={<FiType />}>
-                      <input className="bm-inp" style={inp} type="text"
-                        placeholder="e.g. Summer Sale" value={form.title}
-                        onChange={e => set('title', e.target.value)} />
-                    </Field>
-
-                    <Field label="Subtitle" icon={<FiType />}>
-                      <input className="bm-inp" style={inp} type="text"
-                        placeholder="e.g. Up to 40% off" value={form.subtitle}
-                        onChange={e => set('subtitle', e.target.value)} />
-                    </Field>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <Field label="Button Text" icon={<FiType />}>
-                        <input className="bm-inp" style={inp} type="text"
-                          placeholder="Shop Now" value={form.ctaText}
-                          onChange={e => set('ctaText', e.target.value)} />
-                      </Field>
-                      <Field label="Link" icon={<FiLink />}>
-                        <input className="bm-inp" style={inp} type="text"
-                          placeholder="/catalog" value={form.ctaLink}
-                          onChange={e => set('ctaLink', e.target.value)} />
-                      </Field>
+                <form onSubmit={handleSubmit} style={{ padding: '1.25rem' }}>
+                  {formError && (
+                    <div style={{
+                      background: C.redLight,
+                      border: `1px solid ${C.red}`,
+                      borderRadius: '8px',
+                      padding: '0.75rem',
+                      marginBottom: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      color: C.red,
+                      fontSize: '0.8rem'
+                    }}>
+                      <FiAlertCircle size={14} />
+                      {formError}
                     </div>
+                  )}
 
-                    <Field label="Placement" icon={<FiMove />} hint="Where this banner appears">
-                      <select className="bm-inp" style={{ ...inp, cursor: 'pointer' }}
-                        value={form.position} onChange={e => set('position', e.target.value)}>
-                        {positions.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                      </select>
+                  <Field label="Desktop Image" icon={<FiImage />} hint="1920 × 500 px recommended">
+                    <DropZone id="bm-desk" preview={deskPrev} hint="PNG · JPG · WebP up to 10MB"
+                      onFile={(f) => { set('desktopImage', f); setDeskPrev(URL.createObjectURL(f)); }}
+                      onClear={() => { set('desktopImage', null); setDeskPrev(null); }} />
+                  </Field>
+
+                  <Field label="Mobile Image" icon={<FiImage />} hint="768 × 400 px recommended">
+                    <DropZone id="bm-mob" preview={mobPrev} hint="PNG · JPG · WebP up to 5MB"
+                      onFile={(f) => { set('mobileImage', f); setMobPrev(URL.createObjectURL(f)); }}
+                      onClear={() => { set('mobileImage', null); setMobPrev(null); }} />
+                  </Field>
+
+                  <div style={{ height: '1px', background: C.border, margin: '1rem 0' }} />
+
+                  <Field label="Title" icon={<FiType />}>
+                    <input className="bm-inp" style={inp} type="text"
+                      placeholder="e.g., Summer Sale" value={form.title}
+                      onChange={e => set('title', e.target.value)} />
+                  </Field>
+
+                  <Field label="Subtitle" icon={<FiType />}>
+                    <input className="bm-inp" style={inp} type="text"
+                      placeholder="e.g., Up to 40% off" value={form.subtitle}
+                      onChange={e => set('subtitle', e.target.value)} />
+                  </Field>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <Field label="Button Text" icon={<FiType />}>
+                      <input className="bm-inp" style={inp} type="text"
+                        placeholder="Shop Now" value={form.ctaText}
+                        onChange={e => set('ctaText', e.target.value)} />
                     </Field>
-
-                    <div className="bm-toggle" onClick={() => set('isActive', !form.isActive)}>
-                      <div className="bm-track" style={{ background: form.isActive ? C.red : C.border }}>
-                        <div className="bm-thumb" style={{ left: form.isActive ? '19px' : '2px' }} />
-                      </div>
-                      <span className="bm-toggle-lbl">
-                        {form.isActive ? 'Active — visible on site' : 'Hidden — not shown'}
-                      </span>
-                    </div>
+                    <Field label="Link" icon={<FiLink />}>
+                      <input className="bm-inp" style={inp} type="text"
+                        placeholder="/catalog" value={form.ctaLink}
+                        onChange={e => set('ctaLink', e.target.value)} />
+                    </Field>
                   </div>
 
-                  <div className="bm-form-footer">
-                    <button type="button" className="bm-cancel"
-                      onClick={() => { setShowForm(false); resetForm(); }}>Cancel</button>
-                    <button type="submit" className="bm-save" disabled={submitting}>
-                      {submitting
-                        ? <><Spinner animation="border" size="sm"
-                            style={{ width: '13px', height: '13px', borderWidth: '2px' }} /> Saving…</>
-                        : <><FiSave size={13} /> {editingId ? 'Update' : 'Create Banner'}</>}
+                  <Field label="Placement" icon={<FiMove />} hint="Where this banner appears">
+                    <select className="bm-inp" style={{ ...inp, cursor: 'pointer' }}
+                      value={form.position} onChange={e => set('position', e.target.value)}>
+                      {positions.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    </select>
+                  </Field>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem',
+                    background: C.redLight,
+                    borderRadius: '8px',
+                    marginBottom: '1rem'
+                  }}>
+                    <span style={{ fontWeight: 500, color: C.charcoal }}>
+                      {form.isActive ? 'Active — visible on site' : 'Hidden — not shown'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => set('isActive', !form.isActive)}
+                      style={{
+                        background: form.isActive ? C.red : C.gray,
+                        border: 'none',
+                        borderRadius: '30px',
+                        padding: '0.25rem 0.75rem',
+                        color: C.white,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {form.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => { setShowForm(false); resetForm(); }}
+                      style={{
+                        flex: 1,
+                        background: C.white,
+                        border: `1.5px solid ${C.border}`,
+                        borderRadius: '30px',
+                        padding: '0.6rem',
+                        color: C.gray,
+                        fontWeight: 500,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      style={{
+                        flex: 1,
+                        background: C.gradient,
+                        border: 'none',
+                        borderRadius: '30px',
+                        padding: '0.6rem',
+                        color: C.white,
+                        fontWeight: 600,
+                        cursor: submitting ? 'not-allowed' : 'pointer',
+                        opacity: submitting ? 0.7 : 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      {submitting ? (
+                        <><Spinner animation="border" size="sm" style={{ width: '14px', height: '14px', borderWidth: '2px' }} /> Saving...</>
+                      ) : (
+                        <><FiSave size={14} /> {editingId ? 'Update Banner' : 'Create Banner'}</>
+                      )}
                     </button>
                   </div>
                 </form>
-              </>
-            ) : (
-              <>
-                <div className="bm-form-head">
-                  <h2 className="bm-form-head-title">Banner Editor</h2>
-                </div>
-                <div className="bm-ph">
-                  <div className="bm-ph-ico"><FiImage size={28} color={C.gray} /></div>
-                  <h3>No Banner Selected</h3>
-                  <p>Create a new banner or click Edit on an existing one to modify it.</p>
-                  <button className="bm-ph-btn" onClick={() => { resetForm(); setShowForm(true); }}>
-                    <FiPlus size={13} /> Create Banner
-                  </button>
-                </div>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -684,7 +750,7 @@ export default function BannerManagement() {
       {/* Toast */}
       {toast && (
         <div className={`bm-toast ${toast.type}`}>
-          {toast.type === 'success' ? <FiCheck size={13} /> : <FiAlertCircle size={13} />}
+          {toast.type === 'success' ? <FiCheck size={14} /> : <FiAlertCircle size={14} />}
           {toast.msg}
         </div>
       )}

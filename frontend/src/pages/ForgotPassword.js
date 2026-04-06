@@ -10,17 +10,19 @@ import {
     Spinner,
     InputGroup
 } from 'react-bootstrap';
-import { FiMail, FiLock, FiEye, FiEyeOff, FiCheckCircle } from 'react-icons/fi';
+import { FiMail, FiLock, FiEye, FiEyeOff, FiCheckCircle, FiArrowLeft } from 'react-icons/fi';
 
-// Navbar color palette
-const logoColors = {
-    primary: '#fe7e8b', // Navbar primary color
-    secondary: '#e65c70', // Navbar secondary color
-    light: '#ffd1d4', // Navbar light color
-    dark: '#d64555', // Navbar dark color
-    background: '#fff5f6', // Super light - almost white
-    gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)', // Navbar gradient
-    softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)', // Very soft gradient
+const C = {
+    red:       '#CC1B1B',
+    redDark:   '#A01212',
+    redDeep:   '#7A0C0C',
+    redLight:  '#fdf2f2',
+    charcoal:  '#1e1e1e',
+    white:     '#ffffff',
+    lightGray: '#f7f7f7',
+    border:    '#e8e8e8',
+    gray:      '#888888',
+    gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 const API = process.env.REACT_APP_API_URL;
@@ -100,349 +102,445 @@ export default function ForgotPassword() {
     ];
 
     return (
-        <Container
-            fluid
-            className="d-flex justify-content-center align-items-center"
-            style={{ minHeight: '100vh', background: logoColors.background }}
-        >
-            <Card className="shadow-lg border-0" style={{
-                width: '100%',
-                maxWidth: '480px',
-                borderRadius: '16px',
-                overflow: 'hidden'
-            }}>
-                {/* Card Header with Pink Gradient */}
-                <div style={{
-                    background: logoColors.gradient,
-                    padding: '2rem 1.5rem',
-                    textAlign: 'center'
-                }}>
-                    <h2 className="text-white mb-2" style={{ fontWeight: '600' }}>
-                        Forgot Password
-                    </h2>
-                    <p className="text-white-50 mb-0" style={{ opacity: 0.9 }}>
-                        We'll send a 6-digit OTP to your email
-                    </p>
-                </div>
+        <>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+                
+                .forgot-password-page {
+                    min-height: 100vh;
+                    background: ${C.white};
+                    font-family: 'Barlow', sans-serif;
+                }
 
-                <Card.Body style={{ padding: '2rem 1.5rem' }}>
-                    {/* Step Indicator */}
-                    <div className="d-flex justify-content-center mb-4">
-                        {steps.map((s, i) => (
-                            <div key={s.num} className="d-flex align-items-center">
-                                <div
-                                    className="d-flex align-items-center justify-content-center rounded-circle"
-                                    style={{
-                                        width: 36,
-                                        height: 36,
-                                        background: step >= s.num
-                                            ? logoColors.gradient
-                                            : '#e9ecef',
-                                        color: step >= s.num ? 'white' : '#6c757d',
-                                        fontSize: '0.9rem',
-                                        fontWeight: 600,
-                                        transition: 'all 0.3s ease',
-                                        boxShadow: step >= s.num ? `0 4px 10px ${logoColors.primary}40` : 'none'
-                                    }}
-                                >
-                                    {step > s.num ? <FiCheckCircle size={18} /> : s.num}
-                                </div>
-                                <div
-                                    className="mx-2"
-                                    style={{
-                                        fontSize: '0.75rem',
-                                        color: step >= s.num ? logoColors.dark : '#6c757d',
-                                        fontWeight: step >= s.num ? '600' : '400'
-                                    }}
-                                >
-                                    {s.label}
-                                </div>
-                                {i < steps.length - 1 && (
-                                    <div
-                                        style={{
-                                            width: 30,
-                                            height: 2,
-                                            background: step > s.num ? logoColors.primary : '#e9ecef',
-                                            margin: '0 4px'
-                                        }}
-                                    />
-                                )}
+                .form-control:focus {
+                    border-color: ${C.red};
+                    box-shadow: 0 0 0 0.2rem ${C.red}20;
+                }
+            `}</style>
+
+            <div className="forgot-password-page">
+                <Container
+                    fluid
+                    className="d-flex justify-content-center align-items-center"
+                    style={{ minHeight: '100vh', padding: '2rem' }}
+                >
+                    <Card className="shadow-lg border-0" style={{
+                        width: '100%',
+                        maxWidth: '480px',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        border: `1px solid ${C.border}`
+                    }}>
+                        {/* Card Header with Red Gradient */}
+                        <div style={{
+                            background: C.gradient,
+                            padding: '2rem 1.5rem',
+                            textAlign: 'center'
+                        }}>
+                            <h2 className="text-white mb-2" style={{ fontFamily: 'Barlow, sans-serif', fontWeight: '700' }}>
+                                Forgot Password
+                            </h2>
+                            <p className="mb-0" style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'Barlow, sans-serif' }}>
+                                We'll send a 6-digit OTP to your email
+                            </p>
+                        </div>
+
+                        <Card.Body style={{ padding: '2rem 1.5rem', background: C.white }}>
+                            {/* Step Indicator */}
+                            <div className="d-flex justify-content-center mb-4">
+                                {steps.map((s, i) => (
+                                    <div key={s.num} className="d-flex align-items-center">
+                                        <div
+                                            className="d-flex align-items-center justify-content-center rounded-circle"
+                                            style={{
+                                                width: 36,
+                                                height: 36,
+                                                background: step >= s.num ? C.gradient : C.lightGray,
+                                                color: step >= s.num ? C.white : C.gray,
+                                                fontSize: '0.9rem',
+                                                fontWeight: 600,
+                                                transition: 'all 0.3s ease',
+                                                boxShadow: step >= s.num ? `0 4px 10px ${C.red}40` : 'none'
+                                            }}
+                                        >
+                                            {step > s.num ? <FiCheckCircle size={18} /> : s.num}
+                                        </div>
+                                        <div
+                                            className="mx-2"
+                                            style={{
+                                                fontSize: '0.7rem',
+                                                color: step >= s.num ? C.charcoal : C.gray,
+                                                fontWeight: step >= s.num ? '600' : '400',
+                                                fontFamily: 'Barlow, sans-serif'
+                                            }}
+                                        >
+                                            {s.label}
+                                        </div>
+                                        {i < steps.length - 1 && (
+                                            <div
+                                                style={{
+                                                    width: 30,
+                                                    height: 2,
+                                                    background: step > s.num ? C.red : C.border,
+                                                    margin: '0 4px'
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
 
-                    {error && (
-                        <Alert
-                            variant="danger"
-                            className="text-center"
-                            style={{
-                                background: '#ffd1d4',
-                                border: `1px solid ${logoColors.primary}`,
-                                color: logoColors.dark,
-                                borderRadius: '8px'
-                            }}
-                        >
-                            {error}
-                        </Alert>
-                    )}
-
-                    {success && (
-                        <Alert
-                            variant="success"
-                            className="text-center"
-                            style={{
-                                background: logoColors.softGradient,
-                                border: `1px solid ${logoColors.light}`,
-                                color: logoColors.dark,
-                                borderRadius: '8px'
-                            }}
-                        >
-                            {success}
-                        </Alert>
-                    )}
-
-                    {/* Step 1: Email */}
-                    {step === 1 && (
-                        <Form onSubmit={handleSendOtp}>
-                            <Form.Group className="mb-4">
-                                <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                                    Email Address
-                                </Form.Label>
-                                <InputGroup>
-                                    <InputGroup.Text style={{
-                                        background: 'white',
-                                        borderColor: logoColors.light,
-                                        color: logoColors.primary
-                                    }}>
-                                        <FiMail />
-                                    </InputGroup.Text>
-                                    <Form.Control
-                                        type="email"
-                                        placeholder="Enter your registered email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        required
-                                        style={{
-                                            borderColor: logoColors.light,
-                                            padding: '0.75rem',
-                                            borderRadius: '0 8px 8px 0'
-                                        }}
-                                    />
-                                </InputGroup>
-                                <Form.Text className="text-muted" style={{ color: '#718096' }}>
-                                    We'll send a 6-digit OTP to this email.
-                                </Form.Text>
-                            </Form.Group>
-                            <Button
-                                type="submit"
-                                className="w-100 py-3"
-                                disabled={loading}
-                                style={{
-                                    background: logoColors.gradient,
-                                    border: 'none',
-                                    fontSize: '1rem',
-                                    fontWeight: '500',
-                                    borderRadius: '8px',
-                                    transition: 'all 0.3s ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!loading) {
-                                        e.target.style.opacity = '0.9';
-                                        e.target.style.transform = 'translateY(-2px)';
-                                        e.target.style.boxShadow = `0 4px 12px ${logoColors.primary}40`;
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!loading) {
-                                        e.target.style.opacity = '1';
-                                        e.target.style.transform = 'translateY(0)';
-                                        e.target.style.boxShadow = 'none';
-                                    }
-                                }}
-                            >
-                                {loading ? <Spinner size="sm" animation="border" variant="light" /> : 'Send OTP'}
-                            </Button>
-                        </Form>
-                    )}
-
-                    {/* Step 2: OTP */}
-                    {step === 2 && (
-                        <Form onSubmit={handleVerifyOtp}>
-                            <Form.Group className="mb-4">
-                                <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                                    Enter OTP
-                                </Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Enter the 6-digit OTP"
-                                    value={otp}
-                                    onChange={e => setOtp(e.target.value)}
-                                    maxLength={6}
-                                    required
+                            {error && (
+                                <Alert
+                                    variant="danger"
+                                    className="text-center"
                                     style={{
-                                        letterSpacing: '6px',
-                                        fontSize: '1.6rem',
-                                        textAlign: 'center',
-                                        borderColor: logoColors.light,
-                                        padding: '0.75rem',
-                                        borderRadius: '8px'
+                                        background: C.redLight,
+                                        border: `1px solid ${C.red}`,
+                                        color: C.red,
+                                        borderRadius: '8px',
+                                        fontFamily: 'Barlow, sans-serif'
                                     }}
-                                />
-                                <Form.Text className="text-muted" style={{ color: '#718096' }}>
-                                    OTP sent to <strong style={{ color: logoColors.primary }}>{email}</strong>. Valid for 10 minutes.
-                                </Form.Text>
-                            </Form.Group>
-                            <Button
-                                type="submit"
-                                className="w-100 py-3 mb-2"
-                                disabled={loading}
-                                style={{
-                                    background: logoColors.gradient,
-                                    border: 'none',
-                                    fontSize: '1rem',
-                                    fontWeight: '500',
-                                    borderRadius: '8px',
-                                    transition: 'all 0.3s ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!loading) {
-                                        e.target.style.opacity = '0.9';
-                                        e.target.style.transform = 'translateY(-2px)';
-                                        e.target.style.boxShadow = `0 4px 12px ${logoColors.primary}40`;
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!loading) {
-                                        e.target.style.opacity = '1';
-                                        e.target.style.transform = 'translateY(0)';
-                                        e.target.style.boxShadow = 'none';
-                                    }
-                                }}
-                            >
-                                {loading ? <Spinner size="sm" animation="border" variant="light" /> : 'Verify OTP'}
-                            </Button>
-                            <Button
-                                variant="link"
-                                className="w-100"
-                                onClick={() => { setStep(1); setError(''); setSuccess(''); }}
-                                style={{ color: logoColors.primary, textDecoration: 'none' }}
-                            >
-                                ← Change Email
-                            </Button>
-                        </Form>
-                    )}
+                                >
+                                    {error}
+                                </Alert>
+                            )}
 
-                    {/* Step 3: New Password */}
-                    {step === 3 && (
-                        <Form onSubmit={handleResetPassword}>
-                            <Form.Group className="mb-3">
-                                <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                                    New Password
-                                </Form.Label>
-                                <InputGroup>
-                                    <InputGroup.Text style={{
-                                        background: 'white',
-                                        borderColor: logoColors.light,
-                                        color: logoColors.primary
-                                    }}>
-                                        <FiLock />
-                                    </InputGroup.Text>
-                                    <Form.Control
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder="At least 6 characters"
-                                        value={newPassword}
-                                        onChange={e => setNewPassword(e.target.value)}
-                                        required
-                                        minLength={6}
-                                        style={{
-                                            borderColor: logoColors.light,
-                                            padding: '0.75rem'
-                                        }}
-                                    />
+                            {success && (
+                                <Alert
+                                    variant="success"
+                                    className="text-center"
+                                    style={{
+                                        background: '#d4edda',
+                                        border: `1px solid #28a745`,
+                                        color: '#155724',
+                                        borderRadius: '8px',
+                                        fontFamily: 'Barlow, sans-serif'
+                                    }}
+                                >
+                                    {success}
+                                </Alert>
+                            )}
+
+                            {/* Step 1: Email */}
+                            {step === 1 && (
+                                <Form onSubmit={handleSendOtp}>
+                                    <Form.Group className="mb-4">
+                                        <Form.Label style={{ color: C.charcoal, fontWeight: '600', fontFamily: 'Barlow, sans-serif' }}>
+                                            Email Address
+                                        </Form.Label>
+                                        <InputGroup>
+                                            <InputGroup.Text style={{
+                                                background: C.white,
+                                                borderColor: C.border,
+                                                color: C.red,
+                                                borderRight: 'none'
+                                            }}>
+                                                <FiMail />
+                                            </InputGroup.Text>
+                                            <Form.Control
+                                                type="email"
+                                                placeholder="Enter your registered email"
+                                                value={email}
+                                                onChange={e => setEmail(e.target.value)}
+                                                required
+                                                style={{
+                                                    borderColor: C.border,
+                                                    padding: '0.75rem',
+                                                    borderRadius: '0 8px 8px 0',
+                                                    fontFamily: 'Barlow, sans-serif'
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = C.red;
+                                                    e.target.style.boxShadow = `0 0 0 3px ${C.red}20`;
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = C.border;
+                                                    e.target.style.boxShadow = 'none';
+                                                }}
+                                            />
+                                        </InputGroup>
+                                        <Form.Text className="text-muted" style={{ color: C.gray, fontFamily: 'Barlow, sans-serif' }}>
+                                            We'll send a 6-digit OTP to this email.
+                                        </Form.Text>
+                                    </Form.Group>
                                     <Button
-                                        variant="outline-secondary"
-                                        onClick={() => setShowPassword(p => !p)}
+                                        type="submit"
+                                        className="w-100 py-3"
+                                        disabled={loading}
                                         style={{
-                                            borderColor: logoColors.light,
-                                            color: logoColors.primary,
-                                            background: 'white'
+                                            background: C.gradient,
+                                            border: 'none',
+                                            fontSize: '1rem',
+                                            fontWeight: '600',
+                                            borderRadius: '30px',
+                                            transition: 'all 0.3s ease',
+                                            fontFamily: 'Barlow, sans-serif'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!loading) {
+                                                e.target.style.opacity = '0.9';
+                                                e.target.style.transform = 'translateY(-2px)';
+                                                e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!loading) {
+                                                e.target.style.opacity = '1';
+                                                e.target.style.transform = 'translateY(0)';
+                                                e.target.style.boxShadow = 'none';
+                                            }
                                         }}
                                     >
-                                        {showPassword ? <FiEyeOff /> : <FiEye />}
+                                        {loading ? <Spinner size="sm" animation="border" variant="light" /> : 'Send OTP'}
                                     </Button>
-                                </InputGroup>
-                            </Form.Group>
-                            <Form.Group className="mb-4">
-                                <Form.Label style={{ color: logoColors.dark, fontWeight: '500' }}>
-                                    Confirm Password
-                                </Form.Label>
-                                <InputGroup>
-                                    <InputGroup.Text style={{
-                                        background: 'white',
-                                        borderColor: logoColors.light,
-                                        color: logoColors.primary
-                                    }}>
-                                        <FiLock />
-                                    </InputGroup.Text>
-                                    <Form.Control
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder="Re-enter new password"
-                                        value={confirmPassword}
-                                        onChange={e => setConfirmPassword(e.target.value)}
-                                        required
-                                        style={{
-                                            borderColor: logoColors.light,
-                                            padding: '0.75rem'
-                                        }}
-                                    />
-                                </InputGroup>
-                            </Form.Group>
-                            <Button
-                                type="submit"
-                                className="w-100 py-3"
-                                disabled={loading}
-                                style={{
-                                    background: logoColors.gradient,
-                                    border: 'none',
-                                    fontSize: '1rem',
-                                    fontWeight: '500',
-                                    borderRadius: '8px',
-                                    transition: 'all 0.3s ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!loading) {
-                                        e.target.style.opacity = '0.9';
-                                        e.target.style.transform = 'translateY(-2px)';
-                                        e.target.style.boxShadow = `0 4px 12px ${logoColors.primary}40`;
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (!loading) {
-                                        e.target.style.opacity = '1';
-                                        e.target.style.transform = 'translateY(0)';
-                                        e.target.style.boxShadow = 'none';
-                                    }
-                                }}
-                            >
-                                {loading ? <Spinner size="sm" animation="border" variant="light" /> : 'Reset Password'}
-                            </Button>
-                        </Form>
-                    )}
+                                </Form>
+                            )}
 
-                    {/* Back to Login */}
-                    <div className="text-center mt-4">
-                        <a
-                            href="/login"
-                            style={{ color: logoColors.primary, textDecoration: 'none', fontSize: '0.9rem' }}
-                            onClick={e => { e.preventDefault(); navigate('/login'); }}
-                            onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                            onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                        >
-                            ← Back to Login
-                        </a>
-                    </div>
-                </Card.Body>
-            </Card>
-        </Container>
+                            {/* Step 2: OTP */}
+                            {step === 2 && (
+                                <Form onSubmit={handleVerifyOtp}>
+                                    <Form.Group className="mb-4">
+                                        <Form.Label style={{ color: C.charcoal, fontWeight: '600', fontFamily: 'Barlow, sans-serif' }}>
+                                            Enter OTP
+                                        </Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Enter the 6-digit OTP"
+                                            value={otp}
+                                            onChange={e => setOtp(e.target.value)}
+                                            maxLength={6}
+                                            required
+                                            style={{
+                                                letterSpacing: '6px',
+                                                fontSize: '1.6rem',
+                                                textAlign: 'center',
+                                                borderColor: C.border,
+                                                padding: '0.75rem',
+                                                borderRadius: '8px',
+                                                fontFamily: 'Barlow, sans-serif'
+                                            }}
+                                            onFocus={(e) => {
+                                                e.target.style.borderColor = C.red;
+                                                e.target.style.boxShadow = `0 0 0 3px ${C.red}20`;
+                                            }}
+                                            onBlur={(e) => {
+                                                e.target.style.borderColor = C.border;
+                                                e.target.style.boxShadow = 'none';
+                                            }}
+                                        />
+                                        <Form.Text className="text-muted" style={{ color: C.gray, fontFamily: 'Barlow, sans-serif' }}>
+                                            OTP sent to <strong style={{ color: C.red }}>{email}</strong>. Valid for 10 minutes.
+                                        </Form.Text>
+                                    </Form.Group>
+                                    <Button
+                                        type="submit"
+                                        className="w-100 py-3 mb-2"
+                                        disabled={loading}
+                                        style={{
+                                            background: C.gradient,
+                                            border: 'none',
+                                            fontSize: '1rem',
+                                            fontWeight: '600',
+                                            borderRadius: '30px',
+                                            transition: 'all 0.3s ease',
+                                            fontFamily: 'Barlow, sans-serif'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!loading) {
+                                                e.target.style.opacity = '0.9';
+                                                e.target.style.transform = 'translateY(-2px)';
+                                                e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!loading) {
+                                                e.target.style.opacity = '1';
+                                                e.target.style.transform = 'translateY(0)';
+                                                e.target.style.boxShadow = 'none';
+                                            }
+                                        }}
+                                    >
+                                        {loading ? <Spinner size="sm" animation="border" variant="light" /> : 'Verify OTP'}
+                                    </Button>
+                                    <button
+                                        onClick={() => { setStep(1); setError(''); setSuccess(''); }}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            color: C.red,
+                                            fontSize: '0.85rem',
+                                            fontWeight: '500',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            fontFamily: 'Barlow, sans-serif',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '4px',
+                                            width: '100%'
+                                        }}
+                                        onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                        onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                    >
+                                        <FiArrowLeft size={14} /> Change Email
+                                    </button>
+                                </Form>
+                            )}
+
+                            {/* Step 3: New Password */}
+                            {step === 3 && (
+                                <Form onSubmit={handleResetPassword}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label style={{ color: C.charcoal, fontWeight: '600', fontFamily: 'Barlow, sans-serif' }}>
+                                            New Password
+                                        </Form.Label>
+                                        <InputGroup>
+                                            <InputGroup.Text style={{
+                                                background: C.white,
+                                                borderColor: C.border,
+                                                color: C.red,
+                                                borderRight: 'none'
+                                            }}>
+                                                <FiLock />
+                                            </InputGroup.Text>
+                                            <Form.Control
+                                                type={showPassword ? 'text' : 'password'}
+                                                placeholder="At least 6 characters"
+                                                value={newPassword}
+                                                onChange={e => setNewPassword(e.target.value)}
+                                                required
+                                                minLength={6}
+                                                style={{
+                                                    borderColor: C.border,
+                                                    padding: '0.75rem',
+                                                    borderRadius: '0',
+                                                    fontFamily: 'Barlow, sans-serif'
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = C.red;
+                                                    e.target.style.boxShadow = `0 0 0 3px ${C.red}20`;
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = C.border;
+                                                    e.target.style.boxShadow = 'none';
+                                                }}
+                                            />
+                                            <Button
+                                                variant="outline-secondary"
+                                                onClick={() => setShowPassword(p => !p)}
+                                                style={{
+                                                    borderColor: C.border,
+                                                    color: C.red,
+                                                    background: C.white,
+                                                    borderRadius: '0 8px 8px 0',
+                                                    borderLeft: 'none'
+                                                }}
+                                            >
+                                                {showPassword ? <FiEyeOff /> : <FiEye />}
+                                            </Button>
+                                        </InputGroup>
+                                    </Form.Group>
+                                    <Form.Group className="mb-4">
+                                        <Form.Label style={{ color: C.charcoal, fontWeight: '600', fontFamily: 'Barlow, sans-serif' }}>
+                                            Confirm Password
+                                        </Form.Label>
+                                        <InputGroup>
+                                            <InputGroup.Text style={{
+                                                background: C.white,
+                                                borderColor: C.border,
+                                                color: C.red,
+                                                borderRight: 'none'
+                                            }}>
+                                                <FiLock />
+                                            </InputGroup.Text>
+                                            <Form.Control
+                                                type={showPassword ? 'text' : 'password'}
+                                                placeholder="Re-enter new password"
+                                                value={confirmPassword}
+                                                onChange={e => setConfirmPassword(e.target.value)}
+                                                required
+                                                style={{
+                                                    borderColor: C.border,
+                                                    padding: '0.75rem',
+                                                    borderRadius: '0 8px 8px 0',
+                                                    fontFamily: 'Barlow, sans-serif'
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.borderColor = C.red;
+                                                    e.target.style.boxShadow = `0 0 0 3px ${C.red}20`;
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.borderColor = C.border;
+                                                    e.target.style.boxShadow = 'none';
+                                                }}
+                                            />
+                                        </InputGroup>
+                                    </Form.Group>
+                                    <Button
+                                        type="submit"
+                                        className="w-100 py-3"
+                                        disabled={loading}
+                                        style={{
+                                            background: C.gradient,
+                                            border: 'none',
+                                            fontSize: '1rem',
+                                            fontWeight: '600',
+                                            borderRadius: '30px',
+                                            transition: 'all 0.3s ease',
+                                            fontFamily: 'Barlow, sans-serif'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!loading) {
+                                                e.target.style.opacity = '0.9';
+                                                e.target.style.transform = 'translateY(-2px)';
+                                                e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!loading) {
+                                                e.target.style.opacity = '1';
+                                                e.target.style.transform = 'translateY(0)';
+                                                e.target.style.boxShadow = 'none';
+                                            }
+                                        }}
+                                    >
+                                        {loading ? <Spinner size="sm" animation="border" variant="light" /> : 'Reset Password'}
+                                    </Button>
+                                </Form>
+                            )}
+
+                            {/* Back to Login */}
+                            <div className="text-center mt-4">
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: C.red,
+                                        fontSize: '0.85rem',
+                                        fontWeight: '500',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        fontFamily: 'Barlow, sans-serif'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                    onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                >
+                                    ← Back to Login
+                                </button>
+                            </div>
+                        </Card.Body>
+
+                        {/* Bottom decorative line */}
+                        <div style={{
+                            height: '4px',
+                            background: C.gradient,
+                            width: '100%'
+                        }} />
+                    </Card>
+                </Container>
+            </div>
+        </>
     );
 }

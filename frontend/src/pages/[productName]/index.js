@@ -10,28 +10,31 @@ import {
   Button,
   Badge,
   Card,
-  Stack,
   Form,
   ListGroup
 } from 'react-bootstrap';
 import { 
   FiTruck, 
   FiShield, 
-  FiRotateCcw
+  FiRotateCcw,
+  FiShoppingCart,
+  FiCheck
 } from 'react-icons/fi';
+import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 import { useCart } from '../../components/CartContext';
 import RecommendedProducts from '../../components/RecommendedProducts';
 
-// Navbar color palette
-const logoColors = {
-  primary: '#fe7e8b', // Navbar primary color
-  secondary: '#e65c70', // Navbar secondary color
-  light: '#ffd1d4', // Navbar light color
-  dark: '#d64555', // Navbar dark color
-  background: '#fff5f6', // Super light - almost white
-  lighterBg: '#fff9fa', // Even lighter - subtle tint
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)', // Navbar gradient
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)', // Very soft gradient
+const C = {
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#888888',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 export default function ProductDetails() {
@@ -47,6 +50,7 @@ export default function ProductDetails() {
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [reviews, setReviews] = useState([]);
+  const [activeTab, setActiveTab] = useState('description');
   const [reviewForm, setReviewForm] = useState({
     userName: '',
     userEmail: '',
@@ -55,6 +59,7 @@ export default function ProductDetails() {
   });
   const [reviewError, setReviewError] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState('');
+  const [hoverRating, setHoverRating] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -134,7 +139,6 @@ export default function ProductDetails() {
         ...reviewForm
       });
 
-      // Refresh product and reviews
       const res = await axios.get(`${process.env.REACT_APP_API_URL}/product/${id}`);
       setProduct(res.data);
       setReviews(res.data.reviews);
@@ -153,586 +157,651 @@ export default function ProductDetails() {
     }
   };
 
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    
+    return (
+      <>
+        {[...Array(fullStars)].map((_, i) => (
+          <FaStar key={`full-${i}`} style={{ color: C.red, fontSize: '0.9rem' }} />
+        ))}
+        {hasHalfStar && <FaStarHalfAlt style={{ color: C.red, fontSize: '0.9rem' }} />}
+        {[...Array(emptyStars)].map((_, i) => (
+          <FaRegStar key={`empty-${i}`} style={{ color: C.border, fontSize: '0.9rem' }} />
+        ))}
+      </>
+    );
+  };
+
   if (loading) {
     return (
-      <Container fluid className="text-center py-5" style={{ background: logoColors.background, minHeight: '100vh' }}>
-        <Spinner animation="border" style={{ color: logoColors.primary }} />
-        <p className="mt-3" style={{ color: '#4A5568' }}>Loading product details...</p>
-      </Container>
+      <div style={{ minHeight: '100vh', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Spinner animation="border" style={{ color: C.red, width: '2.5rem', height: '2.5rem', borderWidth: '3px' }} />
+          <p style={{ fontFamily: 'Barlow, sans-serif', color: C.gray, marginTop: '1rem' }}>Loading product details...</p>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Container fluid className="py-5" style={{ background: logoColors.background, minHeight: '100vh' }}>
-        <Alert variant="danger">
-          Error loading product: {error.message}
-        </Alert>
-      </Container>
+      <div style={{ minHeight: '100vh', background: C.white, padding: '2rem' }}>
+        <Container>
+          <Alert variant="danger" style={{ borderLeft: `4px solid ${C.red}`, borderRadius: '6px' }}>
+            Error loading product: {error.message}
+          </Alert>
+        </Container>
+      </div>
     );
   }
 
   if (!product) {
     return (
-      <Container fluid className="py-5" style={{ background: logoColors.background, minHeight: '100vh' }}>
-        <Alert variant="info">Product not found</Alert>
-      </Container>
+      <div style={{ minHeight: '100vh', background: C.white, padding: '2rem' }}>
+        <Container>
+          <Alert variant="info" style={{ borderLeft: `4px solid ${C.red}`, borderRadius: '6px' }}>
+            Product not found
+          </Alert>
+        </Container>
+      </div>
     );
   }
 
   return (
-    <Container fluid style={{ background: logoColors.background, minHeight: '100vh', padding: '2rem 0' }}>
-      <Container>
-        <Row className="g-4">
-          {/* Product Images */}
-          <Col md={6}>
-            <Row xs={2} md={3} className="g-3 mb-4">
-              {product.image?.map((img, index) => {
-                const imgUrl = img.startsWith('http') ? img : `${process.env.REACT_APP_API_URL}${img}`;
-                return (
-                      <Col key={`img-${index}`}>
-                    <Card
-                      className={`h-100 cursor-pointer border ${index === selectedImage ? `border-2` : 'border-light'}`}
-                      onClick={() => setSelectedImage(index)}
-                      style={{
-                        cursor: 'pointer',
-                        borderColor: index === selectedImage ? logoColors.primary : '#e2e8f0',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <Card.Img
-                        src={imgUrl}
-                        alt={`${product.name} image ${index + 1}`}
-                        style={{ objectFit: 'cover', height: '150px', width: '100%' }}
-                        onError={e => { e.target.src = '/placeholder.jpg'; }}
-                      />
-                    </Card>
-                  </Col>
-                );
-              })}
-            </Row>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
+        
+        .product-details-page {
+          min-height: 100vh;
+          background: ${C.white};
+          font-family: 'Barlow', sans-serif;
+        }
 
-            {product.designs?.length > 0 && (
-              <>
-                <h6 style={{ color: logoColors.dark, margin: '1.5rem 0 1rem 0', fontWeight: '600' }}>
-                  🎨 Design Options
-                </h6>
-                <Row xs={2} md={3} className="g-3 mb-4">
-                  {product.designs.map((design, index) => {
-                    const designUrl = design.startsWith('http') ? design : `${process.env.REACT_APP_API_URL}${design}`;
+        .quantity-input::-webkit-inner-spin-button,
+        .quantity-input::-webkit-outer-spin-button {
+          opacity: 1;
+        }
+
+        .tab-button {
+          background: none;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          font-family: 'Barlow', sans-serif;
+          font-size: 1rem;
+          font-weight: 600;
+          color: ${C.gray};
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
+        }
+        .tab-button:hover {
+          color: ${C.red};
+        }
+        .tab-button.active {
+          color: ${C.red};
+          border-bottom-color: ${C.red};
+        }
+      `}</style>
+
+      <div className="product-details-page" style={{ padding: '2rem 0' }}>
+        <Container>
+          <Row className="g-5">
+            {/* Product Images - Left Column */}
+            <Col lg={6}>
+              {/* Main Image */}
+              <div style={{
+                border: `1px solid ${C.border}`,
+                borderRadius: '12px',
+                overflow: 'hidden',
+                marginBottom: '1rem',
+                backgroundColor: C.lightGray
+              }}>
+                <img
+                  src={
+                    product.designs?.[selectedDesign] 
+                      ? (product.designs[selectedDesign].startsWith('http') 
+                          ? product.designs[selectedDesign] 
+                          : `${process.env.REACT_APP_API_URL}${product.designs[selectedDesign]}`)
+                      : (product.image?.[selectedImage]
+                          ? (product.image[selectedImage].startsWith('http') 
+                              ? product.image[selectedImage] 
+                              : `${process.env.REACT_APP_API_URL}${product.image[selectedImage]}`) 
+                          : '/placeholder.jpg')
+                  }
+                  alt={product.name}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    objectFit: 'contain',
+                    padding: '2rem'
+                  }}
+                  onError={e => { e.target.src = '/placeholder.jpg'; }}
+                />
+              </div>
+
+              {/* Thumbnail Images - Small size under main image */}
+              {product.image?.length > 0 && (
+                <div className="d-flex gap-2 justify-content-center">
+                  {product.image.map((img, index) => {
+                    const imgUrl = img.startsWith('http') ? img : `${process.env.REACT_APP_API_URL}${img}`;
                     return (
-                      <Col key={`design-${index}`}>
-                        <Card
-                          className={`h-100 cursor-pointer border ${index === selectedDesign ? 'border-2' : 'border-light'}`}
-                          onClick={() => setSelectedDesign(index)}
-                          style={{
-                            cursor: 'pointer',
-                            borderColor: index === selectedDesign ? logoColors.primary : '#e2e8f0',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          <Card.Img
-                            src={designUrl}
-                            alt={`${product.name} design ${index + 1}`}
-                            style={{ objectFit: 'cover', height: '150px', width: '100%' }}
-                            onError={(e) => { e.target.src = '/placeholder.jpg'; }}
-                          />
-                        </Card>
-                      </Col>
+                      <div
+                        key={`img-${index}`}
+                        onClick={() => setSelectedImage(index)}
+                        style={{
+                          cursor: 'pointer',
+                          border: index === selectedImage ? `2px solid ${C.red}` : `1px solid ${C.border}`,
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          transition: 'all 0.2s ease',
+                          backgroundColor: C.lightGray,
+                          width: '70px',
+                          height: '70px',
+                          flexShrink: 0
+                        }}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`${product.name} ${index + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={e => { e.target.src = '/placeholder.jpg'; }}
+                        />
+                      </div>
                     );
                   })}
-                </Row>
-              </>
-            )}
-
-            <Card className="mt-4 border-0 shadow-sm" style={{
-              borderRadius: '12px',
-              overflow: 'hidden'
-            }}>
-              <Card.Img
-                src={
-                  product.designs?.[selectedDesign] 
-                    ? (product.designs[selectedDesign].startsWith('http') 
-                        ? product.designs[selectedDesign] 
-                        : `${process.env.REACT_APP_API_URL}${product.designs[selectedDesign]}`)
-                    : (product.image?.[selectedImage]
-                        ? (product.image[selectedImage].startsWith('http') 
-                            ? product.image[selectedImage] 
-                            : `${process.env.REACT_APP_API_URL}${product.image[selectedImage]}`) 
-                        : '/placeholder.jpg')
-                }
-                alt={`${product.name} main image`}
-                style={{
-                  objectFit: 'contain',
-                  height: '400px',
-                  width: '100%',
-                  backgroundColor: '#f8f9fa'
-                }}
-                onError={e => { e.target.src = '/placeholder.jpg'; }}
-              />
-            </Card>
-          </Col>
-
-          {/* Product Details */}
-          <Col md={6}>
-            <Stack gap={3}>
-              <div>
-                <Badge
-                  bg="light"
-                  text="dark"
-                  className="mb-2"
-                  style={{
-                    background: logoColors.softGradient,
-                    border: 'none',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '20px',
-                    color: logoColors.dark,
-                    fontWeight: '500'
-                  }}
-                >
-                  {typeof product.category === 'object' ? product.category.name : product.category}
-                </Badge>
-                <h1 className="display-5 fw-bold" style={{ color: '#2D3748' }}>{product.name}</h1>
-                {product.stock > 0 ? (
-                  <Badge
-                    className="mb-3"
-                    style={{
-                      background: logoColors.primary,
-                      border: 'none',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '20px'
-                    }}
-                  >
-                    In Stock
-                  </Badge>
-                ) : (
-                  <Badge
-                    bg="danger"
-                    className="mb-3"
-                    style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: '20px'
-                    }}
-                  >
-                    Out of Stock
-                  </Badge>
-                )}
-              </div>
-
-              <div className="d-flex align-items-center gap-3">
-                <h3 className="mb-0" style={{ color: logoColors.primary }}>
-                  Rs. {product.discountedPrice}
-                </h3>
-                {product.originalPrice && product.originalPrice > product.discountedPrice && (
-                  <del className="text-muted" style={{ color: '#718096' }}>Rs. {product.originalPrice}</del>
-                )}
-              </div>
-
-              {/* Rating Display */}
-              <div className="d-flex align-items-center mt-2">
-                <div className="d-flex me-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        color: product.averageRating > i ? logoColors.primary : '#ccc',
-                        fontSize: '1.2rem'
-                      }}
-                    >
-                      {product.averageRating > i ? '★' : '☆'}
-                    </span>
-                  ))}
                 </div>
-                <span className="text-muted" style={{ color: '#718096' }}>
-                  ({product.reviewCount} reviews)
+              )}
+            </Col>
+
+            {/* Product Info - Right Column */}
+            <Col lg={6}>
+              {/* Brand */}
+              <div style={{ 
+                fontSize: '0.75rem', 
+                letterSpacing: '0.1em', 
+                color: C.gray, 
+                textTransform: 'uppercase',
+                marginBottom: '0.5rem'
+              }}>
+                {typeof product.category === 'object' ? product.category.name : product.category}
+              </div>
+
+              {/* Title */}
+              <h1 style={{ 
+                fontFamily: 'Barlow, sans-serif', 
+                fontSize: '2rem', 
+                fontWeight: 700, 
+                color: C.charcoal,
+                marginBottom: '0.75rem'
+              }}>
+                {product.name}
+              </h1>
+              {/* Stock Status */}
+              <div className="mb-4">
+                {product.stock > 0 ? (
+                  <span style={{ color: '#2e7d32', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FiCheck size={16} /> In Stock
+                  </span>
+                ) : (
+                  <span style={{ color: C.red, fontSize: '0.85rem', fontWeight: 500 }}>
+                    Out of Stock
+                  </span>
+                )}
+              </div>
+
+              {/* Rating */}
+              <div className="d-flex align-items-center gap-2 mb-3">
+                <div className="d-flex gap-1">
+                  {renderStars(product.averageRating || 0)}
+                </div>
+                <span style={{ color: C.gray, fontSize: '0.85rem' }}>
+                  {product.reviewCount || 0} Reviews
                 </span>
               </div>
 
-              {/* Product Variants - Sizes and Colors */}
+              {/* Price */}
+              <div className="d-flex align-items-center gap-3 mb-4">
+                <span style={{ 
+                  fontFamily: 'Barlow, sans-serif', 
+                  fontSize: '1.75rem', 
+                  fontWeight: 700, 
+                  color: C.red 
+                }}>
+                  Rs. {product.discountedPrice?.toLocaleString()}
+                </span>
+                {product.originalPrice && product.originalPrice > product.discountedPrice && (
+                  <span style={{ 
+                    fontFamily: 'Barlow, sans-serif', 
+                    fontSize: '1.1rem', 
+                    color: C.gray, 
+                    textDecoration: 'line-through' 
+                  }}>
+                    Rs. {product.originalPrice?.toLocaleString()}
+                  </span>
+                )}
+              </div>
+
+              {/* Design Options - Small size under price */}
+              {product.designs?.length > 0 && (
+                <div className="mb-4">
+                  <label style={{ color: C.charcoal, fontWeight: 600, marginBottom: '0.5rem', display: 'block', fontSize: '0.85rem' }}>
+                    Design Options
+                  </label>
+                  <div className="d-flex gap-2 flex-wrap">
+                    {product.designs.map((design, index) => {
+                      const designUrl = design.startsWith('http') ? design : `${process.env.REACT_APP_API_URL}${design}`;
+                      return (
+                        <div
+                          key={`design-${index}`}
+                          onClick={() => setSelectedDesign(index)}
+                          style={{
+                            cursor: 'pointer',
+                            border: index === selectedDesign ? `2px solid ${C.red}` : `1px solid ${C.border}`,
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            transition: 'all 0.2s ease',
+                            backgroundColor: C.lightGray,
+                            width: '60px',
+                            height: '60px'
+                          }}
+                        >
+                          <img
+                            src={designUrl}
+                            alt={`Design ${index + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={e => { e.target.src = '/placeholder.jpg'; }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Variants - Sizes and Colors */}
               {(product.variants?.sizes?.length > 0 || product.variants?.colors?.length > 0) && (
-                <div className="mt-3">
+                <div className="mb-4">
                   {product.variants?.sizes?.length > 0 && (
-                    <Form.Group className="mb-3">
-                      <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Size:</Form.Label>
+                    <div className="mb-3">
+                      <label style={{ color: C.charcoal, fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
+                        Size
+                      </label>
                       <div className="d-flex gap-2 flex-wrap">
                         {product.variants.sizes.map((size, index) => (
-                          <Button
+                          <button
                             key={index}
-                            variant={selectedSize === size ? "primary" : "outline-secondary"}
-                            size="sm"
                             onClick={() => setSelectedSize(size)}
                             style={{
-                              borderRadius: '8px',
-                              borderColor: selectedSize === size ? logoColors.primary : '#e2e8f0',
-                              background: selectedSize === size ? logoColors.gradient : 'transparent',
-                              color: selectedSize === size ? 'white' : '#4A5568'
+                              padding: '0.5rem 1.2rem',
+                              borderRadius: '30px',
+                              border: selectedSize === size ? `1px solid ${C.red}` : `1px solid ${C.border}`,
+                              background: selectedSize === size ? C.redLight : C.white,
+                              color: selectedSize === size ? C.red : C.charcoal,
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
                             }}
                           >
                             {size}
-                          </Button>
+                          </button>
                         ))}
                       </div>
-                    </Form.Group>
+                    </div>
                   )}
                   {product.variants?.colors?.length > 0 && (
-                    <Form.Group className="mb-3">
-                      <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Color:</Form.Label>
+                    <div className="mb-3">
+                      <label style={{ color: C.charcoal, fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
+                        Color
+                      </label>
                       <div className="d-flex gap-2 flex-wrap">
                         {product.variants.colors.map((color, index) => (
-                          <Button
+                          <button
                             key={index}
-                            variant={selectedColor === color ? "primary" : "outline-secondary"}
-                            size="sm"
                             onClick={() => setSelectedColor(color)}
                             style={{
-                              borderRadius: '8px',
-                              borderColor: selectedColor === color ? logoColors.primary : '#e2e8f0',
-                              background: selectedColor === color ? logoColors.gradient : 'transparent',
-                              color: selectedColor === color ? 'white' : '#4A5568'
+                              padding: '0.5rem 1.2rem',
+                              borderRadius: '30px',
+                              border: selectedColor === color ? `1px solid ${C.red}` : `1px solid ${C.border}`,
+                              background: selectedColor === color ? C.redLight : C.white,
+                              color: selectedColor === color ? C.red : C.charcoal,
+                              fontWeight: 500,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
                             }}
                           >
                             {color}
-                          </Button>
+                          </button>
                         ))}
                       </div>
-                    </Form.Group>
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Quantity Selector */}
+              {/* Quantity */}
               {product.stock > 0 && (
-                <Form.Group controlId="quantity" className="mt-3">
-                  <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Quantity:</Form.Label>
+                <div className="mb-4">
+                  <label style={{ color: C.charcoal, fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
+                    Quantity
+                  </label>
                   <div className="d-flex align-items-center">
-                    <Button
-                      variant="outline-secondary"
+                    <button
                       onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                      style={{ borderRadius: '8px 0 0 8px', borderColor: '#e2e8f0' }}
+                      style={{
+                        width: '40px',
+                        height: '45px',
+                        border: `1px solid ${C.border}`,
+                        background: C.white,
+                        borderRadius: '8px 0 0 8px',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem'
+                      }}
                     >
                       -
-                    </Button>
-                    <Form.Control
+                    </button>
+                    <input
                       type="number"
                       min="1"
                       max={product.stock}
                       value={quantity}
                       onChange={handleQuantityChange}
-                      className="text-center"
+                      className="quantity-input"
                       style={{
-                        width: '60px',
-                        borderRadius: '0',
-                        borderColor: '#e2e8f0',
+                        width: '70px',
+                        height: '45px',
+                        border: `1px solid ${C.border}`,
                         borderLeft: 'none',
-                        borderRight: 'none'
+                        borderRight: 'none',
+                        textAlign: 'center',
+                        fontSize: '1rem',
+                        outline: 'none'
                       }}
                     />
-                    <Button
-                      variant="outline-secondary"
+                    <button
                       onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
-                      style={{ borderRadius: '0 8px 8px 0', borderColor: '#e2e8f0' }}
+                      style={{
+                        width: '40px',
+                        height: '45px',
+                        border: `1px solid ${C.border}`,
+                        background: C.white,
+                        borderRadius: '0 8px 8px 0',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem'
+                      }}
                     >
                       +
-                    </Button>
+                    </button>
                   </div>
-                  <Form.Text className="text-muted" style={{ color: '#718096' }}>
-                    Max {product.stock} available
-                  </Form.Text>
-                </Form.Group>
+                </div>
               )}
 
-              <Stack direction="horizontal" gap={3} className="mt-4">
-                {product.stock > 0 ? (
-                  <>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={handleOrderNow}
-                      style={{
-                        background: 'linear-gradient(135deg, #FF4B5C 0%, #E63946 100%)',
-                        border: 'none',
-                        flex: 1,
-                        padding: '0.9rem',
-                        borderRadius: '12px',
-                        fontWeight: '700',
-                        fontSize: '1rem',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase',
-                        boxShadow: '0 4px 15px rgba(230,57,70,0.3)',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(230,57,70,0.45)';
-                        e.currentTarget.style.filter = 'brightness(1.1)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(230,57,70,0.3)';
-                        e.currentTarget.style.filter = 'none';
-                      }}
-                    >
-                      Order Now
-                    </Button>
-                    <Button
-                      variant="outline-primary"
-                      size="lg"
-                      onClick={() => {
-                        handleAddToCart();
-                      }}
-                      style={{
-                        borderColor: '#E63946',
-                        color: '#E63946',
-                        background: 'white',
-                        flex: 1,
-                        padding: '0.9rem',
-                        borderRadius: '12px',
-                        fontWeight: '700',
-                        fontSize: '1rem',
-                        letterSpacing: '0.5px',
-                        textTransform: 'uppercase',
-                        borderWidth: '2px',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#FFF5F5';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(230,57,70,0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'white';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                      data-track="add_to_cart"
-                    >
-                      Add to Cart
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    disabled
-                    style={{ width: '100%' }}
-                  >
-                    Currently Unavailable
-                  </Button>
-                )}
-              </Stack>
+              {/* Action Buttons */}
+              <div className="d-flex gap-3 mb-4">
+                <button
+                  onClick={handleOrderNow}
+                  disabled={product.stock <= 0}
+                  style={{
+                    flex: 1,
+                    background: C.gradient,
+                    color: C.white,
+                    border: 'none',
+                    padding: '1rem',
+                    borderRadius: '30px',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    cursor: product.stock > 0 ? 'pointer' : 'not-allowed',
+                    opacity: product.stock > 0 ? 1 : 0.6,
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (product.stock > 0) {
+                      e.target.style.transform = 'translateY(-2px)';
+                      e.target.style.boxShadow = `0 4px 12px ${C.red}40`;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                >
+                  Buy Now
+                </button>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock <= 0}
+                  style={{
+                    flex: 1,
+                    background: C.white,
+                    color: C.red,
+                    border: `2px solid ${C.red}`,
+                    padding: '1rem',
+                    borderRadius: '30px',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    cursor: product.stock > 0 ? 'pointer' : 'not-allowed',
+                    opacity: product.stock > 0 ? 1 : 0.6,
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (product.stock > 0) {
+                      e.target.style.background = C.redLight;
+                      e.target.style.transform = 'translateY(-2px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = C.white;
+                    e.target.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <FiShoppingCart size={18} />
+                  Add to Cart
+                </button>
+              </div>
 
-              {/* Promotional Icons */}
-              <div className="mt-4 pt-4 border-top">
-                <Row className="text-center g-2">
+
+
+              {/* Shipping Info */}
+              <div className="pt-3 border-top" style={{ borderTopColor: C.border }}>
+                <Row className="g-3 text-center">
                   <Col xs={4}>
-                    <div className="d-flex flex-column align-items-center">
-                      <FiTruck size={24} className="mb-2" />
-                      <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>7 Day Delivery</div>
-                      <div style={{ fontSize: '0.7rem', color: '#718096' }}>Fast Shipping</div>
-                    </div>
-                  </Col>
-                  <Col xs={4} style={{ borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
-                    <div className="d-flex flex-column align-items-center">
-                      <FiShield size={24} className="mb-2" />
-                      <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>Verified Products</div>
-                      <div style={{ fontSize: '0.7rem', color: '#718096' }}>Quality Assured</div>
-                    </div>
+                    <FiTruck size={20} color={C.red} />
+                    <div style={{ fontSize: '0.7rem', color: C.charcoal, marginTop: '0.25rem' }}>Free Shipping</div>
+                    <div style={{ fontSize: '0.6rem', color: C.gray }}>On orders over Rs. 5000</div>
                   </Col>
                   <Col xs={4}>
-                    <div className="d-flex flex-column align-items-center">
-                      <FiRotateCcw size={24} className="mb-2" />
-                      <div style={{ fontWeight: '600', fontSize: '0.85rem' }}>Easy Returns</div>
-                      <div style={{ fontSize: '0.7rem', color: '#718096' }}>Hassle-Free Returns</div>
-                    </div>
+                    <FiShield size={20} color={C.red} />
+                    <div style={{ fontSize: '0.7rem', color: C.charcoal, marginTop: '0.25rem' }}>Quality Guarantee</div>
+                    <div style={{ fontSize: '0.6rem', color: C.gray }}>1 year warranty</div>
+                  </Col>
+                  <Col xs={4}>
+                    <FiRotateCcw size={20} color={C.red} />
+                    <div style={{ fontSize: '0.7rem', color: C.charcoal, marginTop: '0.25rem' }}>Easy Returns</div>
+                    <div style={{ fontSize: '0.6rem', color: C.gray }}>7 days return policy</div>
                   </Col>
                 </Row>
               </div>
+            </Col>
+          </Row>
 
-              {/* Description - Below Order Now/Add to Cart buttons */}
-              <div className="mt-4">
-                <h5 style={{ color: logoColors.dark, marginBottom: '0.5rem' }}>Description</h5>
-                <p className="text-muted" style={{ color: '#4A5568', lineHeight: '1.8' }}>{product.description}</p>
+          {/* Tabs Section - Only Description and Reviews */}
+          <Row className="mt-5">
+            <Col>
+              <div style={{ borderBottom: `1px solid ${C.border}`, marginBottom: '1.5rem' }}>
+                <button
+                  className={`tab-button ${activeTab === 'description' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('description')}
+                >
+                  Description
+                </button>
+                <button
+                  className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('reviews')}
+                >
+                  Reviews ({reviews.length})
+                </button>
               </div>
-            </Stack>
-          </Col>
-        </Row>
 
-        {/* Reviews Section */}
-        <Row className="mt-5">
-          <Col md={12}>
-            <Card className="mb-4 border-0 shadow-sm" style={{
-              borderRadius: '12px',
-              background: 'white'
-            }}>
-              <Card.Body style={{ padding: '2rem' }}>
-                <h4 style={{ color: logoColors.dark, marginBottom: '1.5rem' }}>Write a Review</h4>
-                {reviewError && <Alert variant="danger">{reviewError}</Alert>}
-                {reviewSuccess && <Alert variant="success">{reviewSuccess}</Alert>}
+              {activeTab === 'description' && (
+                <div>
+                  <p style={{ color: C.charcoal, lineHeight: 1.7, fontSize: '1rem' }}>
+                    {product.description}
+                  </p>
+                </div>
+              )}
 
-                <Form onSubmit={handleReviewSubmit}>
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Your Name</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="userName"
-                          value={reviewForm.userName}
-                          onChange={handleReviewChange}
-                          required
-                          style={{
-                            borderRadius: '8px',
-                            borderColor: '#e2e8f0'
-                          }}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Your Email</Form.Label>
-                        <Form.Control
-                          type="email"
-                          name="userEmail"
-                          value={reviewForm.userEmail}
-                          onChange={handleReviewChange}
-                          required
-                          style={{
-                            borderRadius: '8px',
-                            borderColor: '#e2e8f0'
-                          }}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
+              {activeTab === 'reviews' && (
+                <div>
+                  {/* Write Review Form */}
+                  <Card className="mb-4 border-0 shadow-sm" style={{ borderRadius: '12px', border: `1px solid ${C.border}` }}>
+                    <Card.Body style={{ padding: '1.5rem' }}>
+                      <h5 style={{ color: C.charcoal, marginBottom: '1rem' }}>Write a Review</h5>
+                      {reviewError && <Alert variant="danger">{reviewError}</Alert>}
+                      {reviewSuccess && <Alert variant="success">{reviewSuccess}</Alert>}
 
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Rating</Form.Label>
-                    <div className="d-flex">
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          style={{
-                            cursor: 'pointer',
-                            color: reviewForm.rating > i ? logoColors.primary : '#ccc',
-                            fontSize: '1.5rem',
-                            transition: 'color 0.2s ease'
-                          }}
-                          onClick={() => handleRatingChange(i + 1)}
-                          onMouseEnter={(e) => {
-                            if (reviewForm.rating <= i) {
-                              e.target.style.color = logoColors.light;
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (reviewForm.rating <= i) {
-                              e.target.style.color = '#ccc';
-                            }
-                          }}
-                        >
-                          {reviewForm.rating > i ? '★' : '☆'}
-                        </span>
-                      ))}
-                    </div>
-                  </Form.Group>
+                      <Form onSubmit={handleReviewSubmit}>
+                        <Row>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>Your Name</Form.Label>
+                              <Form.Control
+                                type="text"
+                                name="userName"
+                                value={reviewForm.userName}
+                                onChange={handleReviewChange}
+                                required
+                                style={{ borderRadius: '6px', borderColor: C.border }}
+                              />
+                            </Form.Group>
+                          </Col>
+                          <Col md={6}>
+                            <Form.Group className="mb-3">
+                              <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>Your Email</Form.Label>
+                              <Form.Control
+                                type="email"
+                                name="userEmail"
+                                value={reviewForm.userEmail}
+                                onChange={handleReviewChange}
+                                required
+                                style={{ borderRadius: '6px', borderColor: C.border }}
+                              />
+                            </Form.Group>
+                          </Col>
+                        </Row>
 
-                  <Form.Group className="mb-3">
-                    <Form.Label style={{ color: '#4A5568', fontWeight: '500' }}>Review</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={3}
-                      name="comment"
-                      value={reviewForm.comment}
-                      onChange={handleReviewChange}
-                      required
-                      style={{
-                        borderRadius: '8px',
-                        borderColor: '#e2e8f0'
-                      }}
-                    />
-                  </Form.Group>
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    style={{
-                      background: logoColors.gradient,
-                      border: 'none',
-                      padding: '0.75rem 2rem',
-                      borderRadius: '8px',
-                      fontWeight: '500'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.opacity = '0.9';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = `0 4px 12px ${logoColors.primary}40`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.opacity = '1';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                  >
-                    Submit Review
-                  </Button>
-                </Form>
-              </Card.Body>
-            </Card>
-
-            {/* Reviews List */}
-            <h4 style={{ color: logoColors.dark, marginBottom: '1.5rem' }}>Customer Reviews</h4>
-            {reviews.length === 0 ? (
-              <p style={{ color: '#718096' }}>No reviews yet. Be the first to review!</p>
-            ) : (
-              <ListGroup variant="flush">
-                {reviews.map((review) => (
-                  <ListGroup.Item key={review._id} className="px-0 mb-3" style={{ background: 'transparent' }}>
-                    <Card className="border-0 shadow-sm" style={{
-                      borderRadius: '12px',
-                      background: 'white'
-                    }}>
-                      <Card.Body style={{ padding: '1.5rem' }}>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <div>
-                            <strong style={{ color: '#2D3748' }}>{review.userName}</strong>
-                            <small className="text-muted ms-2" style={{ color: '#718096' }}>{review.userEmail}</small>
-                          </div>
-                          <div className="d-flex">
-                            {[...Array(5)].map((_, i) => (
-                              <span
-                                key={i}
+                        <Form.Group className="mb-3">
+                          <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>Rating</Form.Label>
+                          <div className="d-flex gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <FaStar
+                                key={star}
+                                size={24}
                                 style={{
-                                  color: review.rating > i ? logoColors.primary : '#ccc',
-                                  fontSize: '1.2rem'
+                                  cursor: 'pointer',
+                                  color: (hoverRating >= star || reviewForm.rating >= star) ? C.red : C.border,
+                                  transition: 'color 0.2s ease'
                                 }}
-                              >
-                                {review.rating > i ? '★' : '☆'}
-                              </span>
+                                onClick={() => handleRatingChange(star)}
+                                onMouseEnter={() => setHoverRating(star)}
+                                onMouseLeave={() => setHoverRating(0)}
+                              />
                             ))}
                           </div>
-                        </div>
-                        <Card.Text style={{ color: '#4A5568', lineHeight: '1.6' }}>{review.comment}</Card.Text>
-                        <small className="text-muted" style={{ color: '#718096' }}>
-                          Reviewed on {new Date(review.createdAt).toLocaleDateString()}
-                        </small>
-                      </Card.Body>
-                    </Card>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            )}
-          </Col>
-        </Row>
+                        </Form.Group>
 
-        {/* Recommended Products Section */}
-        <Row className="mt-5">
-          <Col>
-            <RecommendedProducts
-              currentProductId={product._id}
-              category={typeof product.category === 'object' ? product.category.name : product.category}
-            />
-          </Col>
-        </Row>
-      </Container>
-    </Container>
+                        <Form.Group className="mb-3">
+                          <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>Your Review</Form.Label>
+                          <Form.Control
+                            as="textarea"
+                            rows={4}
+                            name="comment"
+                            value={reviewForm.comment}
+                            onChange={handleReviewChange}
+                            required
+                            style={{ borderRadius: '6px', borderColor: C.border }}
+                          />
+                        </Form.Group>
+
+                        <Button
+                          type="submit"
+                          style={{
+                            background: C.gradient,
+                            border: 'none',
+                            padding: '0.6rem 1.5rem',
+                            borderRadius: '6px',
+                            fontWeight: 500
+                          }}
+                          onMouseEnter={(e) => { e.target.style.opacity = '0.9'; }}
+                          onMouseLeave={(e) => { e.target.style.opacity = '1'; }}
+                        >
+                          Submit Review
+                        </Button>
+                      </Form>
+                    </Card.Body>
+                  </Card>
+
+                  {/* Reviews List */}
+                  {reviews.length === 0 ? (
+                    <p style={{ color: C.gray, textAlign: 'center', padding: '2rem' }}>No reviews yet. Be the first to review!</p>
+                  ) : (
+                    <ListGroup variant="flush">
+                      {reviews.map((review) => (
+                        <ListGroup.Item key={review._id} style={{ background: 'transparent', borderBottom: `1px solid ${C.border}`, padding: '1rem 0' }}>
+                          <div className="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                              <strong style={{ color: C.charcoal }}>{review.userName}</strong>
+                              <small className="ms-2" style={{ color: C.gray }}>{review.userEmail}</small>
+                            </div>
+                            <div className="d-flex gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <FaStar key={i} size={14} style={{ color: review.rating > i ? C.red : C.border }} />
+                              ))}
+                            </div>
+                          </div>
+                          <p style={{ color: C.charcoal, marginBottom: '0.5rem' }}>{review.comment}</p>
+                          <small style={{ color: C.gray }}>
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </small>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  )}
+                </div>
+              )}
+            </Col>
+          </Row>
+
+          {/* Recommended Products */}
+          <Row className="mt-5">
+            <Col>
+              <h3 style={{ 
+                fontFamily: 'Barlow, sans-serif', 
+                fontSize: '1.5rem', 
+                fontWeight: 600, 
+                color: C.charcoal,
+                marginBottom: '1.5rem'
+              }}>
+                You May Also Like
+              </h3>
+              <RecommendedProducts
+                currentProductId={product._id}
+                category={typeof product.category === 'object' ? product.category.name : product.category}
+              />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    </>
   );
 }

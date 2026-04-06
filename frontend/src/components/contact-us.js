@@ -4,42 +4,42 @@ import { Spinner, Dropdown } from 'react-bootstrap';
 import {
   FiUser, FiMessageSquare, FiSend,
   FiCheck, FiInbox, FiChevronDown, FiClock,
-  FiAlertCircle, FiCheckCircle
+  FiAlertCircle, FiCheckCircle, FiMail
 } from 'react-icons/fi';
 import ReplyModal from './ReplyModal';
 
-/* ─── Design tokens (matches OrderManagement) ─── */
+/* ─── Design tokens - Red Theme ─────────────────────────────────────────────── */
 const C = {
-  primary: '#fe7e8b',
-  secondary: '#e65c70',
-  light: '#ffd1d4',
-  dark: '#d64555',
-  bg: '#fff5f6',
-  border: '#FFE4EC',
-  text: '#2D3748',
-  subtext: '#718096',
-  muted: '#A0AEC0',
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)',
-  softGrad: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)',
+  red:       '#CC1B1B',
+  redDark:   '#A01212',
+  redDeep:   '#7A0C0C',
+  redLight:  '#fdf2f2',
+  charcoal:  '#1e1e1e',
+  white:     '#ffffff',
+  lightGray: '#f7f7f7',
+  border:    '#e8e8e8',
+  gray:      '#888888',
+  gradient:  'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
 };
 
 /* ─── Injected styles ─── */
 const GlobalStyle = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap');
 
     *, *::before, *::after { box-sizing: border-box; }
-    body { background: ${C.bg}; font-family: 'DM Sans', sans-serif; }
+    body { background: ${C.white}; font-family: 'Barlow', sans-serif; }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: ${C.bg}; }
-    ::-webkit-scrollbar-thumb { background: ${C.light}; border-radius: 99px; }
+    ::-webkit-scrollbar-track { background: ${C.white}; }
+    ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: ${C.red}; }
 
     /* Tabs */
     .cm-tabs .nav-link {
-      color: ${C.subtext};
+      color: ${C.gray};
       font-weight: 500;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Barlow', sans-serif;
       font-size: 0.875rem;
       border: none !important;
       padding: 0.875rem 1.25rem;
@@ -57,12 +57,12 @@ const GlobalStyle = () => (
       transition: left .25s ease, right .25s ease;
     }
     .cm-tabs .nav-link.active {
-      color: ${C.primary} !important;
+      color: ${C.red} !important;
       background: transparent !important;
       font-weight: 600;
     }
     .cm-tabs .nav-link.active::after { left: 0.75rem; right: 0.75rem; }
-    .cm-tabs .nav-link:hover { color: ${C.primary} !important; }
+    .cm-tabs .nav-link:hover { color: ${C.red} !important; }
     .cm-tabs .nav { border-bottom: 1.5px solid ${C.border}; }
 
     /* Dropdown */
@@ -70,25 +70,26 @@ const GlobalStyle = () => (
       border: 1.5px solid ${C.border} !important;
       border-radius: 12px !important;
       padding: 0.4rem !important;
-      box-shadow: 0 8px 24px rgba(255,105,180,.12) !important;
+      box-shadow: 0 8px 24px rgba(204,27,27,.12) !important;
     }
     .cm-dropdown-item {
       border-radius: 8px;
       font-size: 0.875rem;
       padding: 0.5rem 0.875rem;
-      color: ${C.text};
+      color: ${C.charcoal};
       transition: background .15s, color .15s;
+      font-family: 'Barlow', sans-serif;
     }
     .cm-dropdown-item:hover {
-      background: ${C.softGrad} !important;
-      color: ${C.dark} !important;
+      background: ${C.redLight} !important;
+      color: ${C.red} !important;
     }
 
     /* Message card */
     .cm-msg-card {
-      background: white;
+      background: ${C.white};
       border: 1.5px solid ${C.border};
-      border-radius: 16px;
+      border-radius: 12px;
       overflow: hidden;
       transition: transform .2s ease, box-shadow .2s ease;
       display: flex;
@@ -97,7 +98,7 @@ const GlobalStyle = () => (
     }
     .cm-msg-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(255,105,180,.14) !important;
+      box-shadow: 0 12px 32px rgba(204,27,27,.14) !important;
     }
 
     /* Card entrance */
@@ -120,8 +121,8 @@ const GlobalStyle = () => (
 
     /* Pulse */
     @keyframes cm-pulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(220,53,69,.3); }
-      50%      { box-shadow: 0 0 0 5px rgba(220,53,69,0); }
+      0%,100% { box-shadow: 0 0 0 0 rgba(204,27,27,.3); }
+      50%      { box-shadow: 0 0 0 5px rgba(204,27,27,0); }
     }
     .cm-pulse { animation: cm-pulse 2s ease infinite; }
   `}</style>
@@ -137,14 +138,15 @@ const timeLabels = {
 const StatPill = ({ label, value, icon: Icon, active, danger }) => (
   <div style={{
     display: 'flex', alignItems: 'center', gap: '0.4rem',
-    background: active ? C.gradient : danger ? 'linear-gradient(135deg,#FFF5F5,#FFE8E8)' : 'white',
-    border: `1.5px solid ${active ? 'transparent' : danger ? '#FFCDD2' : C.border}`,
-    borderRadius: 99,
+    background: active ? C.gradient : danger ? C.redLight : C.white,
+    border: `1.5px solid ${active ? 'transparent' : danger ? C.red : C.border}`,
+    borderRadius: 30,
     padding: '0.35rem 0.875rem 0.35rem 0.6rem',
     fontSize: '0.8rem', fontWeight: 600,
-    color: active ? 'white' : danger ? '#E53E3E' : C.subtext,
-    boxShadow: active ? '0 4px 14px rgba(255,105,180,.3)' : 'none',
-    whiteSpace: 'nowrap'
+    color: active ? C.white : danger ? C.red : C.gray,
+    boxShadow: active ? `0 4px 14px ${C.red}40` : 'none',
+    whiteSpace: 'nowrap',
+    fontFamily: 'Barlow, sans-serif'
   }}>
     {Icon && <Icon size={13} />}
     {label}: <span style={{ marginLeft: 3, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
@@ -156,9 +158,9 @@ const TabTitle = ({ text, count, active, variant }) => {
   const badgeBg = active
     ? C.gradient
     : variant === 'danger'
-      ? 'linear-gradient(135deg,#FFF5F5,#FFE8E8)'
+      ? C.redLight
       : C.border;
-  const badgeColor = active ? 'white' : variant === 'danger' ? '#E53E3E' : C.subtext;
+  const badgeColor = active ? C.white : variant === 'danger' ? C.red : C.gray;
 
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -168,7 +170,7 @@ const TabTitle = ({ text, count, active, variant }) => {
           background: badgeBg, color: badgeColor,
           borderRadius: 99, fontSize: '0.7rem', fontWeight: 700,
           padding: '1px 7px', lineHeight: '1.6', minWidth: 22, textAlign: 'center',
-          ...(active ? { boxShadow: '0 2px 8px rgba(255,20,147,.3)' } : {})
+          ...(active ? { boxShadow: `0 2px 8px ${C.red}40` } : {})
         }}>
           {count}
         </span>
@@ -182,18 +184,18 @@ const ReplyBadge = ({ replied }) => (
   replied ? (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-      background: 'linear-gradient(135deg,#48BB78,#38A169)',
-      color: 'white', borderRadius: 99,
+      background: '#10B981',
+      color: C.white, borderRadius: 99,
       padding: '0.25rem 0.65rem', fontSize: '0.72rem', fontWeight: 700,
-      boxShadow: '0 2px 8px rgba(72,187,120,.25)'
+      boxShadow: '0 2px 8px rgba(16,185,129,.25)'
     }}>
       <FiCheck size={11} /> Replied
     </span>
   ) : (
     <span className="cm-pulse" style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-      background: 'linear-gradient(135deg,#FC8181,#E53E3E)',
-      color: 'white', borderRadius: 99,
+      background: C.red,
+      color: C.white, borderRadius: 99,
       padding: '0.25rem 0.65rem', fontSize: '0.72rem', fontWeight: 700,
     }}>
       <span style={{
@@ -217,11 +219,11 @@ const MessageCard = ({ message, onReply, index }) => {
       className="cm-item"
       style={{ animationDelay: `${index * 0.05}s`, height: '100%' }}
     >
-      <div className="cm-msg-card" style={{ boxShadow: '0 2px 12px rgba(255,105,180,.06)' }}>
+      <div className="cm-msg-card" style={{ boxShadow: '0 2px 12px rgba(204,27,27,.06)' }}>
 
         {/* Card header */}
         <div style={{
-          background: C.softGrad,
+          background: C.redLight,
           padding: '0.875rem 1rem',
           borderBottom: `1.5px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem'
@@ -231,16 +233,16 @@ const MessageCard = ({ message, onReply, index }) => {
               width: 34, height: 34, borderRadius: 10,
               background: C.gradient,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, boxShadow: '0 4px 10px rgba(255,105,180,.3)'
+              flexShrink: 0, boxShadow: `0 4px 10px ${C.red}40`
             }}>
-              <FiUser size={15} color="white" />
+              <FiUser size={15} color={C.white} />
             </span>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: C.text, lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: C.charcoal, lineHeight: 1.2 }}>
                 {message.name}
               </div>
               <div style={{
-                fontSize: '0.72rem', color: C.muted,
+                fontSize: '0.72rem', color: C.gray,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
               }}>
                 {message.email}
@@ -257,11 +259,11 @@ const MessageCard = ({ message, onReply, index }) => {
           <div>
             <div style={{
               fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.07em',
-              textTransform: 'uppercase', color: C.muted, marginBottom: 3
+              textTransform: 'uppercase', color: C.gray, marginBottom: 3
             }}>
               Subject
             </div>
-            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: C.text }}>
+            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: C.charcoal }}>
               {message.subject}
             </div>
           </div>
@@ -273,13 +275,13 @@ const MessageCard = ({ message, onReply, index }) => {
           <div style={{ flex: 1 }}>
             <div style={{
               fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.07em',
-              textTransform: 'uppercase', color: C.muted, marginBottom: 4,
+              textTransform: 'uppercase', color: C.gray, marginBottom: 4,
               display: 'flex', alignItems: 'center', gap: '0.3rem'
             }}>
-              <FiMessageSquare size={11} style={{ color: C.light }} /> Message
+              <FiMessageSquare size={11} style={{ color: C.red }} /> Message
             </div>
             <p style={{
-              fontSize: '0.855rem', color: C.subtext, margin: 0,
+              fontSize: '0.855rem', color: C.gray, margin: 0,
               lineHeight: 1.6,
               display: '-webkit-box',
               WebkitLineClamp: 4,
@@ -297,8 +299,8 @@ const MessageCard = ({ message, onReply, index }) => {
           borderTop: `1.5px solid ${C.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: C.muted, fontSize: '0.75rem' }}>
-            <FiClock size={11} style={{ color: C.light }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: C.gray, fontSize: '0.75rem' }}>
+            <FiClock size={11} style={{ color: C.red }} />
             {formatDate(message.createdAt)}
           </div>
 
@@ -309,23 +311,23 @@ const MessageCard = ({ message, onReply, index }) => {
                 background: C.gradient,
                 border: 'none',
                 borderRadius: 8,
-                color: 'white',
-                fontWeight: 700,
+                color: C.white,
+                fontWeight: 600,
                 fontSize: '0.78rem',
                 padding: '0.4rem 0.875rem',
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: '0.35rem',
-                fontFamily: 'inherit',
-                boxShadow: '0 4px 12px rgba(255,105,180,.3)',
+                fontFamily: 'Barlow, sans-serif',
+                boxShadow: `0 4px 12px ${C.red}40`,
                 transition: 'all .2s'
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(255,105,180,.4)';
+                e.currentTarget.style.boxShadow = `0 6px 16px ${C.red}50`;
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,105,180,.3)';
+                e.currentTarget.style.boxShadow = `0 4px 12px ${C.red}40`;
               }}
             >
               <FiSend size={12} /> Reply
@@ -344,20 +346,20 @@ const MessagesGrid = ({ messages, onReply, emptyMessage }) => (
       <div style={{ textAlign: 'center', padding: '5rem 0' }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%',
-          background: C.softGrad, margin: '0 auto 1rem',
+          background: C.redLight, margin: '0 auto 1rem',
           display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-          <FiInbox size={26} style={{ color: C.light }} />
+          <FiInbox size={26} style={{ color: C.red }} />
         </div>
-        <p style={{ color: C.muted, fontWeight: 500, margin: 0, fontSize: '0.875rem' }}>
+        <p style={{ color: C.gray, fontWeight: 500, margin: 0, fontSize: '0.875rem' }}>
           {emptyMessage}
         </p>
       </div>
     ) : (
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '1rem'
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+        gap: '1.25rem'
       }}>
         {messages.map((msg, i) => (
           <MessageCard key={msg._id} message={msg} onReply={onReply} index={i} />
@@ -448,7 +450,7 @@ export default function ContactMessages() {
     <>
       <GlobalStyle />
       <div style={{
-        minHeight: '100vh', background: C.bg,
+        minHeight: '100vh', background: C.white,
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', gap: '1rem'
       }}>
@@ -456,12 +458,12 @@ export default function ContactMessages() {
           width: 56, height: 56, borderRadius: '50%',
           background: C.gradient, display: 'flex',
           alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 8px 24px rgba(255,105,180,.35)'
+          boxShadow: `0 8px 24px ${C.red}40`
         }}>
-          <FiInbox size={22} color="white" />
+          <FiMail size={22} color={C.white} />
         </div>
-        <Spinner animation="border" style={{ color: C.primary, width: 28, height: 28, borderWidth: 2 }} />
-        <p style={{ color: C.muted, fontWeight: 500, margin: 0, fontSize: '0.875rem' }}>Loading messages…</p>
+        <Spinner animation="border" style={{ color: C.red, width: 28, height: 28, borderWidth: 2 }} />
+        <p style={{ color: C.gray, fontWeight: 500, margin: 0, fontSize: '0.875rem' }}>Loading messages…</p>
       </div>
     </>
   );
@@ -470,23 +472,23 @@ export default function ContactMessages() {
   if (error) return (
     <>
       <GlobalStyle />
-      <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ minHeight: '100vh', background: C.white, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{
-          background: 'white', border: '1.5px solid #FFCDD2', borderRadius: 16,
+          background: C.white, border: `1.5px solid ${C.red}`, borderRadius: 12,
           padding: '2rem', maxWidth: 440, width: '100%', textAlign: 'center',
-          boxShadow: '0 4px 24px rgba(220,53,69,.1)'
+          boxShadow: `0 4px 24px ${C.red}20`
         }}>
           <div style={{
             width: 52, height: 52, borderRadius: '50%',
-            background: 'linear-gradient(135deg,#FFF5F5,#FFE8E8)',
+            background: C.redLight,
             display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem'
           }}>
-            <FiAlertCircle size={24} style={{ color: '#E53E3E' }} />
+            <FiAlertCircle size={24} style={{ color: C.red }} />
           </div>
-          <h5 style={{ color: C.text, fontFamily: 'DM Serif Display, serif', fontWeight: 400, marginBottom: '0.5rem' }}>
+          <h5 style={{ color: C.charcoal, fontWeight: 600, marginBottom: '0.5rem' }}>
             Failed to load messages
           </h5>
-          <p style={{ color: C.subtext, fontSize: '0.875rem', margin: 0 }}>{error}</p>
+          <p style={{ color: C.gray, fontSize: '0.875rem', margin: 0 }}>{error}</p>
         </div>
       </div>
     </>
@@ -496,8 +498,8 @@ export default function ContactMessages() {
   return (
     <>
       <GlobalStyle />
-      <div style={{ background: C.bg, minHeight: '100vh', padding: '2rem 1rem' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div style={{ background: C.white, minHeight: '100vh', padding: '2rem 1rem' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
 
           {/* Page header */}
           <div style={{
@@ -505,23 +507,31 @@ export default function ContactMessages() {
             flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem'
           }}>
             <div>
-              <p style={{
-                margin: 0, fontSize: '0.75rem', fontWeight: 700,
-                letterSpacing: '0.1em', textTransform: 'uppercase', color: C.light
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.2em',
+                textTransform: 'uppercase', color: C.red, marginBottom: '0.5rem'
               }}>
+                <span style={{ width: 5, height: 5, background: C.red, borderRadius: '50%' }} />
                 Dashboard
-              </p>
+              </div>
               <h1 style={{
                 margin: 0,
-                fontFamily: 'DM Serif Display, serif',
-                fontWeight: 400,
+                fontWeight: 700,
                 fontSize: 'clamp(1.5rem,4vw,2rem)',
-                background: C.gradient,
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text', lineHeight: 1.2
+                color: C.charcoal,
+                lineHeight: 1.2,
+                fontFamily: 'Barlow, sans-serif'
               }}>
                 Contact Messages
               </h1>
+              <div style={{
+                height: '3px',
+                width: '60px',
+                background: C.red,
+                borderRadius: '2px',
+                marginTop: '0.5rem'
+              }} />
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -533,10 +543,10 @@ export default function ContactMessages() {
 
           {/* Main card */}
           <div className="cm-card-wrap" style={{
-            background: 'white',
+            background: C.white,
             borderRadius: 16,
             border: `1.5px solid ${C.border}`,
-            boxShadow: '0 4px 40px rgba(255,105,180,.08)',
+            boxShadow: `0 4px 40px ${C.red}08`,
             overflow: 'hidden'
           }}>
             {/* Toolbar */}
@@ -545,22 +555,23 @@ export default function ContactMessages() {
               flexWrap: 'wrap', gap: '0.75rem',
               padding: '1rem 1.25rem',
               borderBottom: `1.5px solid ${C.border}`,
-              background: C.softGrad
+              background: C.redLight
             }}>
               <Dropdown>
                 <Dropdown.Toggle style={{
-                  background: 'white',
+                  background: C.white,
                   border: `1.5px solid ${C.border}`,
-                  color: C.text,
-                  borderRadius: 10, fontWeight: 600,
+                  color: C.charcoal,
+                  borderRadius: 8,
+                  fontWeight: 500,
                   fontSize: '0.8rem',
                   padding: '0.45rem 0.875rem',
                   display: 'flex', alignItems: 'center', gap: '0.4rem',
-                  boxShadow: 'none', fontFamily: 'inherit'
+                  boxShadow: 'none', fontFamily: 'Barlow, sans-serif'
                 }}>
-                  <FiClock size={13} style={{ color: C.primary }} />
+                  <FiClock size={13} style={{ color: C.red }} />
                   {timeLabels[timeFilter]}
-                  <FiChevronDown size={12} style={{ color: C.muted }} />
+                  <FiChevronDown size={12} style={{ color: C.gray }} />
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="cm-dropdown-menu">
                   {Object.entries(timeLabels).map(([key, label], i) => (
@@ -571,7 +582,7 @@ export default function ContactMessages() {
                         onClick={() => setTimeFilter(key)}
                         style={{
                           fontWeight: timeFilter === key ? 700 : 400,
-                          color: timeFilter === key ? C.primary : C.text
+                          color: timeFilter === key ? C.red : C.charcoal
                         }}
                       >
                         {label}
@@ -582,7 +593,7 @@ export default function ContactMessages() {
               </Dropdown>
             </div>
 
-            {/* Tabs — manual render to avoid react-bootstrap dep on nav */}
+            {/* Tabs */}
             <div>
               {/* Tab nav */}
               <div className="cm-tabs" style={{ padding: '0 0.5rem' }}>
@@ -596,7 +607,7 @@ export default function ContactMessages() {
                       key={t.key}
                       className={`nav-link${activeTab === t.key ? ' active' : ''}`}
                       onClick={() => setActiveTab(t.key)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Barlow, sans-serif' }}
                     >
                       <TabTitle
                         text={t.label}
@@ -634,7 +645,7 @@ export default function ContactMessages() {
           </div>
 
           {/* Footer */}
-          <p style={{ textAlign: 'center', color: C.muted, fontSize: '0.75rem', marginTop: '1.25rem' }}>
+          <p style={{ textAlign: 'center', color: C.gray, fontSize: '0.75rem', marginTop: '1.25rem' }}>
             Showing {counts[activeTab]} message{counts[activeTab] !== 1 ? 's' : ''} · {timeLabels[timeFilter]}
           </p>
         </div>
