@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "./components/Layout";
 import { Toaster } from "react-hot-toast";
+import GlobalWhatsAppButton from "./components/GlobalWhatsAppButton";
 
 // Import your pages
 import Home from "./pages/Home";
@@ -141,6 +142,7 @@ function App() {
       <ScrollToTop />
       <DynamicTitle />
       <Toaster position="top-center" />
+      <GlobalWhatsAppButton />
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />

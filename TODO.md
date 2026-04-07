@@ -1,29 +1,15 @@
-# Online Payment Removal - TODO
+# WhatsApp Floating Button Task
 
-## Plan Steps (Approved)
+## Completed:
+- [x] Analyzed project files and layout structure
+- [x] Created GlobalWhatsAppButton.js component (kept as reference)
+- [x] Reverted Layout.js changes per user feedback
 
-### 1. Backend Cleanup ✅ (Analysis Complete)
-- [ ] Delete `backend/routes/paymentRoutes.js`
-- [ ] Update `backend/Models/Order.js` - Remove Stripe fields
-- [ ] Update `backend/package.json` - Remove stripe dep
-- [ ] Update `backend/index.js` - Remove payment routes & webhook middleware
-- [ ] Update `backend/routes/orderRoutes.js` - Remove payment handling
-- [ ] Remove STRIPE_* from `.env`
+## Pending:
+- [ ] Add to frontend/.env: `REACT_APP_WHATSAPP_NUMBER=+92300XXXXXXX` (replace with your admin number, e.g. +923001234567)
+- [ ] Test locally: `cd frontend && npm start`
+- [ ] Verify floating button appears on pages and opens WhatsApp chat
 
-### 2. Frontend Cleanup
-- [ ] Simplify `frontend/src/components/CheckoutPage.js` → Pure COD only
-- [ ] Update `frontend/src/components/OrderManagement.js` - Remove payment display
-- [ ] Update `frontend/src/components/ExportOrders.js` - Remove paymentMethod from export
-- [ ] Update `frontend/package.json` - Remove stripe deps if any
-
-### 3. Finalization & Testing
-- [ ] Backend: `npm uninstall stripe`
-- [ ] Frontend: `npm uninstall @stripe/stripe-js` (if present)
-- [ ] Test COD checkout end-to-end
-- [ ] Test dashboard orders/export
-- [ ] Restart servers
-
-**Next:** Read remaining files then execute edits step-by-step.
-
-Updated after each step.
+## Next Step:
+Edit Layout.js to import and render <GlobalWhatsAppButton />.
 

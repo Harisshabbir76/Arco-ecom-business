@@ -140,7 +140,7 @@ const ContactUs = () => {
                   </div>
                   <div>
                     <h6 className="mb-1" style={{ fontWeight: 700, color: C.charcoal }}>Call Us</h6>
-                    <p className="mb-0 text-muted">+92 (300) 123-4567</p>
+                    <p className="mb-0 text-muted">{process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}</p>
                   </div>
                 </Card.Body>
               </Card>

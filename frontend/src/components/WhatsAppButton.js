@@ -5,6 +5,7 @@ import { FaWhatsapp } from 'react-icons/fa';
 
 const WhatsAppButton = ({ order }) => {
   const formatPhoneNumber = (phone) => {
+    if (!phone) return '';
     // Remove all non-digit characters
     const cleaned = phone.replace(/\D/g, '');
 

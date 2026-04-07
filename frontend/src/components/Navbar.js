@@ -563,8 +563,8 @@ const Navbar = () => {
         {/* Desktop Main bar */}
         <div className="nb-main">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <a href="tel:+923337555554" className="nb-contact-item">
-              <FiPhone size={13} /> +92 333 7555554
+            <a href={`tel:${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}`} className="nb-contact-item">
+              <FiPhone size={13} /> {process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}
             </a>
             <a href="mailto:info@graceware.shop" className="nb-contact-item">
               <FiMail size={13} /> info@graceware.shop
@@ -894,8 +894,8 @@ const Navbar = () => {
 
             <div className="nb-sidebar-footer">
               <div className="nb-sidebar-footer-label">Need help?</div>
-              <a href="tel:+923337555554" className="nb-sidebar-footer-contact-item">
-                <FiPhone size={13} /> +92 333 7555554
+              <a href={`tel:${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}`} className="nb-sidebar-footer-contact-item">
+                <FiPhone size={13} /> {process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}
               </a>
               <a href="mailto:info@graceware.shop" className="nb-sidebar-footer-contact-item">
                 <FiMail size={13} /> info@graceware.shop
