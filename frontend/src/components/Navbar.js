@@ -380,7 +380,7 @@ const Navbar = () => {
         /* ── Mobile Top Bar ── */
         .nb-mobile-bar {
           display: none;
-          grid-template-columns: auto 1fr auto;
+          grid-template-columns: 52px 1fr 52px;
           align-items: center;
           padding: 0 1rem;
           height: 60px;
@@ -389,12 +389,16 @@ const Navbar = () => {
           position: relative;
         }
         .nb-mobile-logo {
-          display: flex; justify-content: center;
+          display: flex; 
+          justify-content: center;
           text-decoration: none;
         }
         .nb-mobile-logo img { height: 38px; object-fit: contain; }
         .nb-mobile-right {
-          display: flex; align-items: center; justify-content: flex-end; gap: 2px;
+          display: flex; 
+          align-items: center; 
+          justify-content: flex-end; 
+          gap: 2px;
         }
 
         /* ── Mobile Bottom Bar ── */
@@ -547,6 +551,11 @@ const Navbar = () => {
           .nb-mobile-bar { display: grid !important; }
           .nb-bottom-bar { display: block !important; }
           body { padding-bottom: 60px; }
+          
+          /* Ensure hamburger takes full width of its column */
+          .nb-mobile-bar .nb-icon-btn {
+            justify-self: start;
+          }
         }
         @media (min-width: 769px) {
           .nb-mobile-bar { display: none !important; }
