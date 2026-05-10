@@ -155,7 +155,7 @@ const RecommendedProducts = ({ currentProductId, category }) => {
                     alt={product.name}
                     style={{
                       height: '180px',
-                      objectFit: 'cover',
+                      objectFit: 'contain',
                       width: '100%',
                       backgroundColor: C.lightGray
                     }}

@@ -198,7 +198,7 @@ const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
           className="product-img"
           style={{
             height: '200px',
-            objectFit: 'cover',
+            objectFit: 'contain',
             transition: 'transform 0.3s ease'
           }}
           onMouseEnter={(e) => {

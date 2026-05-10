@@ -474,7 +474,7 @@ const styles = {
   img: {
     width: '100%',
     height: '100%',
-    objectFit: 'cover',
+    objectFit: 'contain',
     transition: 'transform 0.35s ease',
     display: 'block',
     pointerEvents: 'none',

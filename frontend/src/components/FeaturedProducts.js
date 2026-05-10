@@ -223,7 +223,7 @@ export default function FeaturedProducts() {
         .fp-img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           transition: transform 0.35s ease;
           display: block;
         }

@@ -407,7 +407,7 @@ export default function ProductDetails() {
                           <img
                             src={getImgUrl(item.src)}
                             alt={`Thumbnail ${realIndex + 1}`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             onError={e => { e.target.src = '/placeholder.jpg'; }}
                           />
                         </div>
@@ -501,7 +501,7 @@ export default function ProductDetails() {
                           <img
                             src={getImgUrl(design)}
                             alt={`Design ${index + 1}`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             onError={e => { e.target.src = '/placeholder.jpg'; }}
                           />
                         </div>
