@@ -22,7 +22,8 @@ const ProductEditModal = ({ show, product, onClose, onSave }) => {
     description: '',
     category: '',
     stock: 0,
-    images: []
+    images: [],
+    designs: []
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -48,12 +49,13 @@ const ProductEditModal = ({ show, product, onClose, onSave }) => {
     if (product) {
       setFormData({
         name: product.name || '',
-        price: product.price || 0,
+        price: product.originalPrice || product.price || 0,
         discountedPrice: product.discountedPrice || 0,
         description: product.description || '',
         category: (typeof product.category === 'object' && product.category !== null) ? (product.category.name || '') : (product.category || ''),
         stock: product.stock || 0,
-        images: product.image || []
+        images: product.image || [],
+        designs: product.designs || []
       });
       setNewImages([]);
     }
@@ -101,32 +103,26 @@ const ProductEditModal = ({ show, product, onClose, onSave }) => {
 
     try {
       const data = new FormData();
-      // Append text fields
-      Object.entries({
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        stock: formData.stock,
-        originalPrice: formData.price,
-        discountedPrice: formData.discountedPrice,
-        existingImages: JSON.stringify(formData.images)
-      }).forEach(([key, val]) => data.append(key, val));
+      data.append('name', formData.name);
+      data.append('description', formData.description);
+      data.append('category', formData.category);
+      data.append('stock', formData.stock);
+      data.append('originalPrice', formData.price);
+      data.append('discountedPrice', formData.discountedPrice);
+      data.append('existingImages', JSON.stringify(formData.images));
+      data.append('existingDesigns', JSON.stringify(formData.designs));
+
       // Append new image files
-      newImages.forEach(({ file }) => data.append('newImages', file));
+      newImages.forEach(({ file }) => {
+        data.append('newImages', file);
+      });
 
       const response = await axios.put(
         `${process.env.REACT_APP_API_URL}/update/${product._id}`,
-        {
-          name: formData.name,
-          description: formData.description,
-          category: formData.category,
-          stock: formData.stock,
-          originalPrice: formData.price,
-          discountedPrice: formData.discountedPrice,
-          image: formData.images  // keep existing images only (new uploads need separate endpoint)
-        },
+        data,
         {
           headers: {
+            'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         }

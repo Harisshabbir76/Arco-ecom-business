@@ -87,6 +87,15 @@ mongoose.connection.on('disconnected', () => {
   console.warn('MongoDB disconnected!');
 });
 
+// Multer error handler
+app.use((err, req, res, next) => {
+  if (err instanceof require('multer').MulterError) {
+    console.error('Multer Error:', err);
+    return res.status(400).json({ message: `Upload error: ${err.message}`, code: err.code, field: err.field });
+  }
+  next(err);
+});
+
 // Error handlers
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);

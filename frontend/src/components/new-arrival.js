@@ -603,7 +603,7 @@ export default function NewArrivals() {
           ) : (
             <div className="na-grid">
               {filteredProducts.map(product => {
-                const discountPct = product.discountedPrice < product.originalPrice
+                const discountPct = (product.discountedPrice > 0 && product.discountedPrice < product.originalPrice)
                   ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
                   : null;
                 const rating   = product.rating ? parseFloat(product.rating) : null;
@@ -679,7 +679,7 @@ export default function NewArrivals() {
                         <span className="na-price">
                           Rs.&nbsp;{(product.discountedPrice || product.originalPrice)?.toLocaleString()}
                         </span>
-                        {product.discountedPrice < product.originalPrice && (
+                        {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                           <span className="na-price-orig">
                             Rs.&nbsp;{product.originalPrice?.toLocaleString()}
                           </span>

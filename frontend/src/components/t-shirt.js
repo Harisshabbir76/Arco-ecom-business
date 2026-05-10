@@ -115,7 +115,7 @@ export default function TshirtProducts() {
               e.target.src = '/placeholder.jpg';
             }}
           />
-          {product.discountedPrice < product.originalPrice && (
+          {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
             <div style={{
               position: 'absolute',
               top: '10px',
@@ -156,13 +156,13 @@ export default function TshirtProducts() {
           <div className="mt-auto">
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div className="price">
-                {product.discountedPrice < product.originalPrice && (
+                {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                   <span className="original-price text-muted text-decoration-line-through me-2" style={{ fontSize: '0.8rem' }}>
                     Rs. {product.originalPrice}
                   </span>
                 )}
                 <span className="current-price fw-bold" style={{ color: logoColors.primary, fontSize: '1.1rem' }}>
-                  Rs. {product.discountedPrice || product.price}
+                  Rs. {(product.discountedPrice || product.originalPrice)?.toLocaleString()}
                 </span>
               </div>
               <div className="rating" style={{ fontSize: '0.85rem' }}>

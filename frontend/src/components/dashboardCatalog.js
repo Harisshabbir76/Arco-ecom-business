@@ -173,7 +173,7 @@ export default function AdminProductsDashboard() {
   };
 
   const renderProductCard = (product) => {
-    const discountPct = product.discountedPrice < product.originalPrice
+    const discountPct = (product.discountedPrice > 0 && product.discountedPrice < product.originalPrice)
       ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
       : null;
     const stockQty = product.stock ?? 0;
@@ -368,9 +368,9 @@ export default function AdminProductsDashboard() {
                 fontWeight: 700,
                 color: C.red
               }}>
-                Rs. {(product.discountedPrice || product.price)?.toLocaleString()}
+                Rs. {(product.discountedPrice || product.originalPrice)?.toLocaleString()}
               </span>
-              {product.discountedPrice < product.originalPrice && (
+              {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                 <span style={{
                   fontFamily: 'Barlow, sans-serif',
                   fontSize: '0.75rem',

@@ -15,15 +15,15 @@ import { FaShoppingCart, FaBoxOpen, FaStar } from 'react-icons/fa';
 import { CartContext } from '../components/CartContext';
 import './heroSlider.css';
 
-// Navbar color palette
+// ARCO Brand Colors
 const logoColors = {
-  primary: '#fe7e8b', // Navbar primary color
-  secondary: '#e65c70', // Navbar secondary color
-  light: '#ffd1d4', // Navbar light color
-  dark: '#d64555', // Navbar dark color
-  background: '#fff5f6', // Super light - almost white
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)', // Navbar gradient
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)', // Very soft gradient
+  primary: '#CC1B1B',
+  secondary: '#A01212',
+  light: '#fdf2f2',
+  dark: '#7A0C0C',
+  background: '#ffffff',
+  gradient: 'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
+  softGradient: 'linear-gradient(135deg, #ffffff 0%, #fdf2f2 100%)',
 };
 
 const SearchResults = () => {
@@ -211,7 +211,7 @@ const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
             e.target.src = '/placeholder.jpg';
           }}
         />
-        {product.discountedPrice < product.price && (
+        {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
           <div style={{
             position: 'absolute',
             top: '10px',
@@ -224,7 +224,7 @@ const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
             fontWeight: 'bold',
             zIndex: 1
           }}>
-            {Math.round(100 - (product.discountedPrice / product.price * 100))}% OFF
+            {Math.round(100 - (product.discountedPrice / product.originalPrice * 100))}% OFF
           </div>
         )}
         <Badge
@@ -267,13 +267,13 @@ const ProductCard = ({ product, onAddToCart, onViewDetails }) => {
         <div className="mt-auto">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <div className="price">
-              {product.discountedPrice < product.price && (
+              {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                 <span className="original-price text-muted text-decoration-line-through me-2" style={{ fontSize: '0.8rem' }}>
-                  Rs. {product.price}
+                  Rs. {product.originalPrice}
                 </span>
               )}
               <span className="current-price fw-bold" style={{ color: logoColors.primary, fontSize: '1.1rem' }}>
-                Rs. {product.discountedPrice || product.price}
+                Rs. {(product.discountedPrice || product.originalPrice)?.toLocaleString()}
               </span>
             </div>
             <div className="rating" style={{ fontSize: '0.85rem' }}>

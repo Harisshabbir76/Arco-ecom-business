@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
 
 const GlobalWhatsAppButton = () => {
-  const whatsappNumber = process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER || '923471091917';
+  const whatsappNumber = process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER;
   const message = 'Hello! I am interested in kitchenware products from your website.';
   
   const handleWhatsAppClick = () => {

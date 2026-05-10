@@ -14,6 +14,17 @@ import { FiEye, FiSliders, FiChevronDown } from 'react-icons/fi';
 import { CartContext } from '../components/CartContext';
 import FilterComponent from '../components/Filter';
 
+// ARCO Brand Colors
+const logoColors = {
+  primary: '#CC1B1B',
+  secondary: '#A01212',
+  light: '#fdf2f2',
+  dark: '#7A0C0C',
+  background: '#ffffff',
+  gradient: 'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
+  softGradient: 'linear-gradient(135deg, #ffffff 0%, #fdf2f2 100%)',
+};
+
 const C = {
   red:       '#CC1B1B',
   redDark:   '#A01212',
@@ -70,7 +81,7 @@ export default function Catalog() {
           stock: product.stock !== undefined ? product.stock : 0,
           rating: product.averageRating || (Math.random() * 1 + 4).toFixed(1),
           reviewCount: product.reviewCount || 0,
-          price: product.discountedPrice || product.price || 0,
+          price: product.discountedPrice || product.originalPrice || product.price || 0,
           createdAt: product.createdAt ? new Date(product.createdAt) : new Date()
         }));
 
@@ -107,10 +118,10 @@ export default function Catalog() {
 
     switch (sortOption) {
       case 'price-high-low':
-        filtered.sort((a, b) => b.price - a.price);
+        filtered.sort((a, b) => (b.discountedPrice || b.originalPrice || b.price) - (a.discountedPrice || a.originalPrice || a.price));
         break;
       case 'price-low-high':
-        filtered.sort((a, b) => a.price - b.price);
+        filtered.sort((a, b) => (a.discountedPrice || a.originalPrice || a.price) - (b.discountedPrice || b.originalPrice || b.price));
         break;
       case 'rating-high':
         filtered.sort((a, b) => b.rating - a.rating);
@@ -153,7 +164,7 @@ export default function Catalog() {
   const currentSortLabel = SORT_OPTIONS.find(o => o.value === sortOption)?.label || 'Sort';
 
   const renderProductCard = (product) => {
-    const discountPct = product.discountedPrice < product.originalPrice
+    const discountPct = (product.discountedPrice > 0 && product.discountedPrice < product.originalPrice)
       ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
       : null;
     const rating = product.rating ? parseFloat(product.rating) : null;
@@ -423,9 +434,9 @@ export default function Catalog() {
                 fontWeight: 700,
                 color: C.red
               }}>
-                Rs. {(product.discountedPrice || product.price)?.toLocaleString()}
+                Rs. {(product.discountedPrice || product.originalPrice || product.price)?.toLocaleString()}
               </span>
-              {product.discountedPrice < product.originalPrice && (
+              {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                 <span style={{
                   fontFamily: 'Barlow, sans-serif',
                   fontSize: '0.8rem',

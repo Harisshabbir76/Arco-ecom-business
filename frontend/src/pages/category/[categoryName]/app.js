@@ -124,8 +124,9 @@ export default function CategoryProducts() {
   const currentSortLabel = SORT_OPTIONS.find(o => o.value === sortOption)?.label || 'Sort';
 
   const renderProductCard = (product) => {
-    const discountPct = product.discountedPrice < product.originalPrice
-      ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
+    const originalPrice = product.originalPrice || product.price || 0;
+    const discountPct = (product.discountedPrice > 0 && product.discountedPrice < originalPrice)
+      ? Math.round(((originalPrice - product.discountedPrice) / originalPrice) * 100)
       : null;
     const rating = product.rating ? parseFloat(product.rating) : null;
     const stockQty = product.stock ?? 0;
@@ -395,9 +396,9 @@ export default function CategoryProducts() {
                 fontWeight: 700,
                 color: C.red
               }}>
-                Rs. {(product.discountedPrice || product.price)?.toLocaleString()}
+                Rs. {(product.discountedPrice || originalPrice)?.toLocaleString()}
               </span>
-              {product.discountedPrice < product.originalPrice && (
+              {product.discountedPrice > 0 && product.discountedPrice < originalPrice && (
                 <span style={{
                   fontFamily: 'Barlow, sans-serif',
                   fontSize: '0.8rem',

@@ -2,16 +2,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Container } from 'react-bootstrap';
 
-// Navbar color palette
+// ARCO Brand Colors
 const logoColors = {
-  primary: '#fe7e8b', // Navbar primary color
-  secondary: '#e65c70', // Navbar secondary color
-  light: '#ffd1d4', // Navbar light color
-  dark: '#d64555', // Navbar dark color
-  background: '#fff5f6', // Super light - almost white
-  lighterBg: '#fff9fa', // Even lighter - subtle tint
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)', // Navbar gradient
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)', // Very soft gradient
+  primary: '#CC1B1B', // Navbar primary color
+  secondary: '#A01212', // Navbar secondary color
+  light: '#fdf2f2', // Navbar light color
+  dark: '#7A0C0C', // Navbar dark color
+  background: '#ffffff', // Super light - almost white
+  lighterBg: '#f7f7f7', // Even lighter - subtle tint
+  gradient: 'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)', // Navbar gradient
+  softGradient: 'linear-gradient(135deg, #ffffff 0%, #fdf2f2 100%)', // Very soft gradient
 };
 
 const NotFoundPage = () => {

@@ -450,7 +450,7 @@ export default function FeaturedProducts() {
               // Add safe check for product
               if (!product) return null;
               
-              const discountPct = product.discountedPrice && product.discountedPrice < product.originalPrice
+              const discountPct = product.discountedPrice > 0 && product.discountedPrice < product.originalPrice
                 ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
                 : null;
               const rating = product.averageRating ? parseFloat(product.averageRating) : (product.rating || 0);
@@ -532,7 +532,7 @@ export default function FeaturedProducts() {
 
                     {/* Pricing */}
                     <div className="fp-pricing">
-                      {discountPct && (
+                      {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                         <span className="fp-price-original">
                           Rs. {product.originalPrice?.toLocaleString()}
                         </span>

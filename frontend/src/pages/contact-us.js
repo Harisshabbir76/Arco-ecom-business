@@ -5,7 +5,7 @@ import { FaPaperPlane, FaUser, FaEnvelope, FaTag, FaComment, FaCheckCircle, FaTi
 import Popup from '../components/popup';
 import '../App.css';
 
-// KitchenCraft Branding Palette
+// ARCO Branding Palette
 const C = {
   red: '#CC1B1B',
   redDark: '#A01212',
@@ -128,7 +128,7 @@ const ContactUs = () => {
                   </div>
                   <div>
                     <h6 className="mb-1" style={{ fontWeight: 700, color: C.charcoal }}>Email Us</h6>
-                    <p className="mb-0 text-muted">support@kitchencraft.com</p>
+                    <p className="mb-0 text-muted">info@graceware.shop</p>
                   </div>
                 </Card.Body>
               </Card>

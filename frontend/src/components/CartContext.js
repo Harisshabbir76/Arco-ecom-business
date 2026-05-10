@@ -99,10 +99,7 @@ export const CartProvider = ({ children }) => {
     setCart([]);
   };
 
-  const cartTotal = cart.reduce(
-    (total, item) => total + ((item.discountedPrice || item.price) * item.quantity),
-    0
-  );
+  const cartTotal = cart.reduce(    (total, item) => total + ((item.discountedPrice || item.originalPrice || item.price) * item.quantity), 0);
 
   const cartCount = cart.reduce(
     (count, item) => count + item.quantity,

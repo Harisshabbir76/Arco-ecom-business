@@ -61,6 +61,7 @@ export default function AddProduct() {
   const [success, setSuccess] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingDesign, setIsDraggingDesign] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -132,14 +133,25 @@ export default function AddProduct() {
 
   const handleProductSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     setError(null);
     setSuccess(null);
 
     const data = new FormData();
 
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'featured') data.append(key, value);
+    // Ensure optional numeric fields are not sent as empty strings
+    const normalizedFormData = {
+      ...formData,
+      discountedPrice: formData.discountedPrice === '' ? undefined : formData.discountedPrice,
+    };
+
+    Object.entries(normalizedFormData).forEach(([key, value]) => {
+      if (key === 'featured') return;
+      if (value === undefined) return;
+      data.append(key, value);
     });
+
 
     data.append('featured', formData.featured.toString());
 
@@ -185,6 +197,8 @@ export default function AddProduct() {
     } catch (err) {
       console.error(err);
       setError("Product Addition Failed: " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -446,7 +460,7 @@ export default function AddProduct() {
                       <Form.Group className="mb-3">
                         <Form.Label style={{ color: C.charcoal, fontWeight: 500 }}>
                           <FiPercent className="me-2" style={{ color: C.red }} size={14} />
-                          Discounted Price *
+                          Discounted Price (optional)
                         </Form.Label>
                         <InputGroup>
                           <InputGroup.Text style={{
@@ -461,7 +475,6 @@ export default function AddProduct() {
                             name="discountedPrice"
                             value={formData.discountedPrice}
                             onChange={handleChange}
-                            required
                             style={{ borderColor: C.border, padding: '0.75rem' }}
                           />
                         </InputGroup>
@@ -790,6 +803,7 @@ export default function AddProduct() {
                 <Button
                   type="submit"
                   className="w-100 py-3"
+                  disabled={isSubmitting}
                   style={{
                     background: C.gradient,
                     border: 'none',
@@ -800,21 +814,33 @@ export default function AddProduct() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    opacity: isSubmitting ? 0.7 : 1
                   }}
                   onMouseEnter={(e) => {
+                    if (isSubmitting) return;
                     e.target.style.opacity = '0.9';
                     e.target.style.transform = 'translateY(-2px)';
                     e.target.style.boxShadow = `0 4px 15px ${C.red}40`;
                   }}
                   onMouseLeave={(e) => {
+                    if (isSubmitting) return;
                     e.target.style.opacity = '1';
                     e.target.style.transform = 'translateY(0)';
                     e.target.style.boxShadow = 'none';
                   }}
                 >
-                  <FiPackage size={18} />
-                  Add Product
+                  {isSubmitting ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Adding Product...
+                    </>
+                  ) : (
+                    <>
+                      <FiPackage size={18} />
+                      Add Product
+                    </>
+                  )}
                 </Button>
               </Form>
             </Card.Body>

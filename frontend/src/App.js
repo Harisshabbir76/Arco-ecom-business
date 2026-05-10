@@ -87,7 +87,7 @@ function DynamicTitle() {
   useEffect(() => {
     const getTitle = () => {
       // Base title
-      const base = "Zedify";
+      const base = "Arco";
       
       // Exact matches
       if (pathname === "/") return base;

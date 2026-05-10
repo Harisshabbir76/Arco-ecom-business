@@ -6,15 +6,15 @@ import { useCart } from '../components/CartContext';
 import './heroSlider.css';
 import { useNavigate } from 'react-router-dom';
 
-// Navbar color palette
+// ARCO Brand Colors
 const logoColors = {
-  primary: '#fe7e8b', // Navbar primary color
-  secondary: '#e65c70', // Navbar secondary color
-  light: '#ffd1d4', // Navbar light color
-  dark: '#d64555', // Navbar dark color
-  background: '#fff5f6', // Super light - almost white
-  gradient: 'linear-gradient(135deg, #fe7e8b 0%, #e65c70 100%)', // Navbar gradient
-  softGradient: 'linear-gradient(135deg, #fff5f6 0%, #ffd1d4 100%)', // Very soft gradient
+  primary: '#CC1B1B',
+  secondary: '#A01212',
+  light: '#fdf2f2',
+  dark: '#7A0C0C',
+  background: '#ffffff',
+  gradient: 'linear-gradient(135deg, #CC1B1B 0%, #A01212 100%)',
+  softGradient: 'linear-gradient(135deg, #ffffff 0%, #fdf2f2 100%)',
 };
 
 export default function BottomProducts() {
@@ -127,7 +127,7 @@ export default function BottomProducts() {
               e.target.src = '/placeholder.jpg';
             }}
           />
-          {product.discountedPrice < product.originalPrice && (
+          {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
             <div style={{
               position: 'absolute',
               top: '10px',
@@ -168,13 +168,13 @@ export default function BottomProducts() {
           <div className="mt-auto">
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div className="price">
-                {product.discountedPrice < product.originalPrice && (
+                {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                   <span className="original-price text-muted text-decoration-line-through me-2" style={{ fontSize: '0.8rem' }}>
                     Rs. {product.originalPrice}
                   </span>
                 )}
                 <span className="current-price fw-bold" style={{ color: logoColors.primary, fontSize: '1.1rem' }}>
-                  Rs. {product.discountedPrice || product.price}
+                  Rs. {(product.discountedPrice || product.originalPrice || product.price)?.toLocaleString()}
                 </span>
               </div>
               <div className="rating" style={{ fontSize: '0.85rem' }}>

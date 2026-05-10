@@ -18,11 +18,19 @@ function slugify(text) {
 }
 
 // POST /dashboard/add-product - Add a new product
-router.post('/dashboard/add-product', upload.fields([{ name: 'images', maxCount: 10 }, { name: 'designs', maxCount: 10 }]), async (req, res) => {
+router.post('/dashboard/add-product', upload.any(), async (req, res) => {
+  console.log('--- Add Product Request ---');
+  console.log('Body keys:', Object.keys(req.body));
+  console.log('Files received count:', req.files?.length || 0);
+
   let { name, description, originalPrice, discountedPrice, category, stock, sizes, colors, featured } = req.body;
   featured = featured === 'true';
-  const imageFiles = req.files?.images || [];
-  const designFiles = req.files?.designs || [];
+
+  // Treat empty discountedPrice as undefined (optional field)
+  if (discountedPrice === '') discountedPrice = undefined;
+  
+  const imageFiles = req.files?.filter(f => f.fieldname === 'images') || [];
+  const designFiles = req.files?.filter(f => f.fieldname === 'designs') || [];
   const imagePaths = imageFiles.map(file => file.path);
   const designPaths = designFiles.map(file => file.path);
 
@@ -166,18 +174,41 @@ router.get('/product/:id', async (req, res) => {
 });
 
 // PUT /update/:id - Update a product
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', upload.any(), async (req, res) => {
   try {
-    const updateData = { ...req.body };
+    const { name, description, originalPrice, discountedPrice, category, stock, featured } = req.body;
+    let existingImages = [];
+    let existingDesigns = [];
 
-    if (updateData.category) {
-      updateData.category = updateData.category.toLowerCase().trim();
+    try {
+      if (req.body.existingImages) existingImages = JSON.parse(req.body.existingImages);
+      if (req.body.existingDesigns) existingDesigns = JSON.parse(req.body.existingDesigns);
+    } catch (e) {
+      console.error('Error parsing existing images/designs:', e);
     }
 
-    if (updateData.name) {
+    const newImageFiles = req.files?.filter(f => f.fieldname === 'newImages') || [];
+    const newDesignFiles = req.files?.filter(f => f.fieldname === 'newDesigns') || [];
+    
+    const newImagePaths = newImageFiles.map(file => file.path);
+    const newDesignPaths = newDesignFiles.map(file => file.path);
+
+    const updateData = {
+      name,
+      description,
+      originalPrice: Number(originalPrice),
+      discountedPrice: discountedPrice === '' || discountedPrice === 'undefined' ? undefined : Number(discountedPrice),
+      category: category ? category.toLowerCase().trim() : undefined,
+      stock: Number(stock),
+      featured: featured === 'true',
+      image: [...existingImages, ...newImagePaths],
+      designs: [...existingDesigns, ...newDesignPaths]
+    };
+
+    if (name) {
       const existingProduct = await Product.findById(req.params.id);
-      if (existingProduct && (existingProduct.name !== updateData.name || !existingProduct.slug)) {
-        const baseSlug = slugify(updateData.name);
+      if (existingProduct && (existingProduct.name !== name || !existingProduct.slug)) {
+        const baseSlug = slugify(name);
         let uniqueSlug = baseSlug;
         let counter = 1;
         while (await Product.findOne({ slug: uniqueSlug, _id: { $ne: req.params.id } })) {
@@ -193,11 +224,13 @@ router.put('/update/:id', async (req, res) => {
       updateData,
       { new: true }
     );
+
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
     res.json(product);
   } catch (error) {
+    console.error('Update error:', error);
     res.status(500).json({ message: error.message });
   }
 });

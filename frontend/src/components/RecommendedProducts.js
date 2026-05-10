@@ -121,7 +121,7 @@ const RecommendedProducts = ({ currentProductId, category }) => {
             ? product.image[0]
             : `${process.env.REACT_APP_API_URL}${product.image?.[0] || ''}`;
 
-          const discountPct = product.discountedPrice < product.originalPrice
+          const discountPct = (product.discountedPrice > 0 && product.discountedPrice < product.originalPrice)
             ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
             : null;
 
@@ -213,9 +213,9 @@ const RecommendedProducts = ({ currentProductId, category }) => {
                       fontWeight: 700,
                       color: C.red
                     }}>
-                      Rs. {(product.discountedPrice || product.price)?.toLocaleString()}
+                      Rs. {(product.discountedPrice || product.originalPrice || product.price)?.toLocaleString()}
                     </span>
-                    {product.discountedPrice < product.originalPrice && (
+                    {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                       <span style={{
                         fontFamily: 'Barlow, sans-serif',
                         fontSize: '0.7rem',

@@ -253,7 +253,7 @@ const NewArrivalsSlider = () => {
                     />
 
                     {/* Discount badge */}
-                    {product.discountedPrice < product.originalPrice && (
+                    {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                       <span className="na-badge" style={styles.discountBadge}>
                         {Math.round(100 - (product.discountedPrice / product.originalPrice) * 100)}% OFF
                       </span>
@@ -306,7 +306,7 @@ const NewArrivalsSlider = () => {
                     )}
                     <p className="na-product-name" style={styles.productName}>{product.name}</p>
                     <div className="na-pricing" style={styles.pricing}>
-                      {product.discountedPrice < product.originalPrice && (
+                      {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                         <span className="na-price-original" style={styles.originalPrice}>
                           Rs. {product.originalPrice?.toLocaleString()}
                         </span>

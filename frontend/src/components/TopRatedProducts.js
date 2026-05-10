@@ -553,7 +553,7 @@ export default function TopRatedProducts() {
           {/* ── Grid ── */}
           <div className="tr-grid">
             {products.map((product) => {
-              const discountPct = product.discountedPrice && product.discountedPrice < product.originalPrice
+              const discountPct = (product.discountedPrice > 0 && product.discountedPrice < product.originalPrice)
                 ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
                 : null;
               const rating = product.averageRating || product.rating || 0;
@@ -622,7 +622,7 @@ export default function TopRatedProducts() {
 
                     {/* Pricing */}
                     <div className="tr-pricing">
-                      {discountPct && (
+                      {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                         <span className="tr-price-original">
                           Rs. {product.originalPrice?.toLocaleString()}
                         </span>

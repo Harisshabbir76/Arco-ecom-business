@@ -794,7 +794,7 @@ const CheckoutPage = () => {
   const singleProductCheckout = location.state?.products && location.state.products.length > 0;
   const cart = singleProductCheckout ? location.state.products : cartFromContext;
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-  const cartTotal = cart.reduce((sum, item) => sum + ((item.isBundle ? item.bundlePrice : (item.discountedPrice || item.price)) * (item.quantity || 1)), 0);
+  const cartTotal = cart.reduce((sum, item) => sum + ((item.isBundle ? item.bundlePrice : (item.discountedPrice || item.originalPrice || item.price)) * (item.quantity || 1)), 0);
 
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountBreakdown, setDiscountBreakdown] = useState([]);

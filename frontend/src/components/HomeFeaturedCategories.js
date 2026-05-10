@@ -490,7 +490,7 @@ export default function HomeFeaturedCategories() {
                 {/* ── Product grid ── */}
                 <div className="hfc-grid">
                   {catProducts.map(product => {
-                    const discountPct = product.discountedPrice && product.discountedPrice < product.originalPrice
+                    const discountPct = (product.discountedPrice > 0 && product.discountedPrice < product.originalPrice)
                       ? Math.round(((product.originalPrice - product.discountedPrice) / product.originalPrice) * 100)
                       : null;
                     const rating = product.rating || 0;
@@ -564,7 +564,7 @@ export default function HomeFeaturedCategories() {
 
                           {/* Price */}
                           <div className="hfc-pricing">
-                            {discountPct && (
+                            {product.discountedPrice > 0 && product.discountedPrice < product.originalPrice && (
                               <span className="hfc-price-original">
                                 Rs. {product.originalPrice?.toLocaleString()}
                               </span>
